@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# cargo-deny policy: `cargo deny check` (part of `make check`).
+
+[graph]
+all-features = true
+
+[advisories]
+# Every RustSec advisory fails the check; there are no ignores.
+ignore = []
+
+[licenses]
+# Permissive licences only, each one present in the dependency graph.
+allow = [
+  "Apache-2.0",
+  "BSD-3-Clause",
+  "CDLA-Permissive-2.0",
+  "ISC",
+  "MIT",
+  "Unicode-3.0",
+]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

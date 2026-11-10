@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# Stable rustfmt defaults; this file also stops rustfmt picking up a
+# personal global config.
+edition = "2021"
