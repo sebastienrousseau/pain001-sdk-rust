@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+name: Bug Report
+description: Report a reproducible problem in pain001-sdk-rust
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: pain001-sdk-rust Version or Commit
+      placeholder: "0.0.86"
+    validations:
+      required: true
+  - type: input
+    id: server_version
+    attributes:
+      label: pain001 Server Version
+      description: The `version` field of `GET /api/v1/health`.
+      placeholder: "0.0.85"
+    validations:
+      required: true
+  - type: input
+    id: rust_version
+    attributes:
+      label: Rust Version
+      description: The output of `rustc --version`.
+      placeholder: "rustc 1.85.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: method
+    attributes:
+      label: Client Method
+      options:
+        - health
+        - validate
+        - generate
+        - check
+        - faces
+        - project_face
+        - request
+        - Client construction or configuration
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Minimal Reproducer
+      description: |
+        The smallest Rust snippet that shows the problem. Use synthetic
+        data only: replace real IBANs, BICs and names with placeholders.
+        Never paste an API key.
+      render: rust
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error Output
+      description: The `Error` you got (its `Display` or `Debug` form).
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything Else

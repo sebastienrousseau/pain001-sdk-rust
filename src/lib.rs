@@ -39,3 +39,8 @@ pub use types::{
     CheckFinding, CheckResponse, FaceInfo, FaceResponse, GenerateResponse, HealthResponse,
     LossReport, MessageType, RequestError, RowError, ValidationResponse,
 };
+
+/// Compiles the README's Rust snippets as doctests.
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
