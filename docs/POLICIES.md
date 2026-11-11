@@ -16,5 +16,5 @@ listed in `CHANGELOG.md`.
 
 A client at version 0.0.N vendors the conformance kit from core 0.0.N.
 CI runs the kit against the pain001 server pinned in
-`ci/server-requirements.in`, currently 0.0.85, the latest published
+`ci/server-requirements.in`, currently 0.0.86, the latest published
 release; it moves to 0.0.86 once that release is out.

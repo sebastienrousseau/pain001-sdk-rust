@@ -30,5 +30,5 @@ first release will be 0.0.86.
   method; both run against `PAIN001_BASE_URL` and skip without it.
 - `examples/basic.rs`: generate and check a pain.001.001.09 file.
 - CI on stable and on Rust 1.85.0, cargo-deny, the conformance job
-  against `pain001 serve` 0.0.85 from hash-pinned requirements, the DCO
+  against `pain001 serve` 0.0.86 from hash-pinned requirements, the DCO
   check and Markdown lint.

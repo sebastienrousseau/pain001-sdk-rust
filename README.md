@@ -71,7 +71,7 @@ depend on the git repository until it is. It needs a running pain001
 server, which is a Python package:
 
 ```sh
-pip install 'pain001[api]==0.0.85'
+pip install 'pain001[api]==0.0.86'
 pain001 serve --host 127.0.0.1 --port 8000
 ```
 
@@ -86,7 +86,7 @@ talks to a loopback server over plain HTTP can drop it with
 - Rust 1.85 or newer (`rust-version` in `Cargo.toml`), tested in CI on
   stable and on 1.85.0 on Linux ([toolchain policy](docs/POLICIES.md)).
 - A pain001 server to talk to. CI runs the conformance kit in
-  `conformance/` against pain001 0.0.85, pinned in
+  `conformance/` against pain001 0.0.86, pinned in
   `ci/server-requirements.in`.
 - No async runtime: every call blocks the calling thread.
 
