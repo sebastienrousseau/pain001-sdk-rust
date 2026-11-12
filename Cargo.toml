@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 [package]
 name = "pain001-sdk"
-version = "0.0.86"
+version = "0.0.87"
 edition = "2021"
 rust-version = "1.85"
 description = "Typed blocking client for the pain001 REST API (ISO 20022 pain.001 and pain.008)"
