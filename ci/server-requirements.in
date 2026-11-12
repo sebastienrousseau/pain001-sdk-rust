@@ -2,4 +2,4 @@
 # The server the conformance job runs against. Regenerate the hash-pinned
 # lock with:
 #   uv pip compile --generate-hashes --python-version 3.12 ci/server-requirements.in -o ci/server-requirements.txt
-pain001[api]==0.0.86
+pain001[api]==0.0.87
