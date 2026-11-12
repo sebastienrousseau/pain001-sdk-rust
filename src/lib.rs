@@ -15,12 +15,14 @@
 //! let client = Client::new("http://127.0.0.1:8000").timeout(Duration::from_secs(10));
 //! let csv = std::fs::read_to_string("payments.csv").expect("read the CSV");
 //! let generated = client.generate(&csv, "payments.csv", MessageType::Pain00100109, None)?;
-//! assert!(generated.success);
+//! assert!(generated.xml.is_some(), "an Ok always carries the XML");
 //! # Ok(())
 //! # }
 //! ```
 //!
-//! A non-2xx response becomes [`Error::Api`], carrying the HTTP status and
+//! A generate call whose rows fail validation or a scheme rule becomes
+//! [`Error::Refused`] (HTTP `422`), carrying the typed findings; any other
+//! non-2xx response becomes [`Error::Api`], carrying the HTTP status and
 //! the server's `detail` (a string, or an array for a `422`). The client
 //! never retries and never logs request bodies, which hold payment data.
 #![forbid(unsafe_code)]

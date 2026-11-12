@@ -112,9 +112,30 @@ fn main() -> Result<(), Error> {
 ```
 
 `generate` posts the file's text to `POST /api/v1/ui/generate` and
-returns the XML inline. A rejected file (a bad IBAN, an unknown message
+returns the XML inline; an `Ok` always carries it. Rows that fail
+validation or a scheme rule come back as `Error::Refused`, a `422` whose
+`refusal()` holds the typed `validation_errors` and `scheme_violations`.
+A file the server cannot read at all (a bad IBAN, an unknown message
 type) comes back as `Error::Api` with the HTTP status and the server's
 `detail`, so the caller sees why.
+
+```rust,no_run
+# use pain001_sdk::{Client, Error};
+# let client = Client::new("http://127.0.0.1:8000");
+# let csv = String::new();
+match client.generate(&csv, "payments.csv", "pain.001.001.09", Some("uk-chaps")) {
+    Ok(generated) => println!("{} bytes", generated.xml.unwrap_or_default().len()),
+    Err(Error::Refused { response, .. }) => {
+        for row in &response.validation_errors {
+            eprintln!("{}: {}", row.field, row.message);
+        }
+        for violation in &response.scheme_violations {
+            eprintln!("{}", violation["rule"]);
+        }
+    }
+    Err(other) => eprintln!("{other}"),
+}
+```
 
 ---
 
@@ -195,11 +216,14 @@ which is not where a payment file's time goes.
 - **`MessageType`**: the 13 message types in the server's OpenAPI enum.
   Methods take `impl AsRef<str>`, so a type a newer server adds works as a
   plain string.
-- **`Error`** (`src/error.rs`): `Api { status, detail }` for a non-2xx
-  response, where `detail` is a string, or an array for a `422` that
-  `Error::request_errors()` returns typed as `RequestError` items;
-  `Transport` for connection, timeout and TLS failures; `Decode` for a
-  2xx body of the wrong shape.
+- **`Error`** (`src/error.rs`): `Refused { status, response }` for a
+  `422` refusal from `generate`, with the decoded `GenerateResponse`
+  (also through `Error::refusal()`); `Api { status, detail }` for any
+  other non-2xx response, where `detail` is a string, or an array for a
+  `422` that `Error::request_errors()` returns typed as `RequestError`
+  items; `Transport` for connection, timeout and TLS failures; `Decode`
+  for a 2xx body of the wrong shape. `Error::status()` covers both
+  `Refused` and `Api`.
 
 ---
 

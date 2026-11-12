@@ -72,6 +72,43 @@ fn a_string_detail_maps_to_an_api_error() {
     );
 }
 
+const REFUSAL: &str = r#"{"success":false,"message":"Validation failed","xml":null,
+    "validation_errors":[{"field":"$.currency","message":"not ISO 4217","value":"EURO"}],
+    "scheme_violations":[{"rule":"UK-CHAPS-PURP","severity":"error","field":"purpose_code"}]}"#;
+
+#[test]
+fn a_422_refusal_from_generate_carries_the_typed_findings() {
+    let (url, _seen) = serve(422, REFUSAL);
+    let error = Client::new(url)
+        .generate("x", "p.csv", MessageType::Pain00100109, Some("uk-chaps"))
+        .expect_err("422");
+    assert_eq!(error.status(), Some(422));
+    let refusal = error.refusal().expect("typed refusal");
+    assert!(!refusal.success && refusal.xml.is_none());
+    assert_eq!(refusal.validation_errors[0].field, "$.currency");
+    assert_eq!(refusal.validation_errors[0].value, Some(json!("EURO")));
+    assert_eq!(refusal.scheme_violations[0]["rule"], "UK-CHAPS-PURP");
+    assert_eq!(
+        error.to_string(),
+        "pain001 API refused the file (HTTP 422): Validation failed"
+    );
+}
+
+#[test]
+fn a_422_from_generate_without_a_refusal_body_stays_an_api_error() {
+    let (url, _seen) = serve(422, r#"{"detail":[{"loc":["body","message_type"]}]}"#);
+    let error = Client::new(url)
+        .generate("x", "p.csv", "pain.999", None)
+        .expect_err("422");
+    assert!(error.refusal().is_none());
+    assert!(matches!(error, Error::Api { status: 422, ref detail } if detail.is_array()));
+    let (url, _seen) = serve(400, REFUSAL);
+    let error = Client::new(url)
+        .generate("x", "p.csv", "pain.001.001.09", None)
+        .expect_err("400");
+    assert!(matches!(error, Error::Api { status: 400, .. }), "{error:?}");
+}
+
 #[test]
 fn an_array_detail_maps_to_an_api_error() {
     let (url, _seen) = serve(422, r#"{"detail":[{"loc":["body","xml"]}]}"#);

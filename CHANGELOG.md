@@ -20,11 +20,21 @@ first release will be 0.0.86.
   methods also accept any string.
 - `Error` with `Api { status, detail }`, `Transport` and `Decode`, and
   `Error::request_errors()` for a `422`'s FastAPI `detail` items.
+- `Error::Refused { status, response }` and `Error::refusal()`: pain001
+  0.0.87 answers a refused generation (rows that fail validation or a
+  scheme rule) with HTTP `422` instead of `200`, and `generate` now
+  returns the decoded `GenerateResponse` with its typed
+  `validation_errors` and `scheme_violations`, so the findings are not
+  lost in a raw `detail`. `Error::status()` still reports `422`, and an
+  `Ok` from `generate` always carries the XML.
 - `RowError` (`field`, `message`, `value`) for row errors. The 0.0.85
   OpenAPI document names FastAPI's request-error schema for these lists
   through a name collision; the type follows what the server sends.
 - The conformance kit from pain001 core, vendored in `conformance/` with
-  its SHA-256 sums pinned in `conformance/SHA256SUMS`.
+  its SHA-256 sums pinned in `conformance/SHA256SUMS`: kit version 2
+  from core 0.0.87, 14 cases, adding the `422` generate refusals (bad
+  rows and a UK CHAPS scheme breach) and the bad-LEI and CHAPS purpose
+  validation cases with their fixtures.
 - `tests/conformance.rs`, a port of core's reference runner that sends
   every kit case through `request()`, and `tests/typed.rs`, one test per
   method; both run against `PAIN001_BASE_URL` and skip without it.

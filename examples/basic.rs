@@ -46,8 +46,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let health = client.health()?;
     println!("server {} is {}", health.version, health.status);
 
+    // A refused file is `Error::Refused`, so an `Ok` always carries the XML.
     let generated = client.generate(&csv, "payments.csv", MessageType::Pain00100109, None)?;
-    let xml = generated.xml.ok_or(generated.message)?;
+    let xml = generated.xml.ok_or("the server sent no XML")?;
     std::fs::write(&output, &xml)?;
     println!("wrote {} ({} bytes)", output.display(), xml.len());
 

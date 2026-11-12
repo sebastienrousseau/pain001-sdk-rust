@@ -9,7 +9,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 use ureq::http;
 
-use crate::error::{api_error, Error};
+use crate::error::{api_error, generate_error, Error};
 use crate::types::{
     CheckRequest, CheckResponse, FaceInfo, FaceRequest, FaceResponse, FilePayload,
     GenerateResponse, HealthResponse, ValidationResponse,
@@ -102,6 +102,12 @@ impl Client {
     }
 
     /// `POST /api/v1/ui/generate`: turns a payment file's text into XML.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Refused`] when the server refuses the rows or a scheme rule
+    /// (HTTP `422`), carrying the typed findings; [`Error::Api`] for any
+    /// other non-2xx reply, such as a `400` for an unreadable file.
     pub fn generate(
         &self,
         content: &str,
@@ -115,7 +121,7 @@ impl Client {
             message_type: message_type.as_ref(),
             scheme,
         };
-        self.call("POST", "/api/v1/ui/generate", Some(&body))
+        self.call_with("POST", "/api/v1/ui/generate", Some(&body), generate_error)
     }
 
     /// `POST /api/v1/check`: runs the validation ladder on an existing
@@ -179,13 +185,29 @@ impl Client {
         B: Serialize + ?Sized,
         T: DeserializeOwned,
     {
+        self.call_with(method, path, body, api_error)
+    }
+
+    /// [`Client::call`] with `on_error` building the error for a non-2xx
+    /// status from the parsed body.
+    fn call_with<B, T>(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<&B>,
+        on_error: fn(u16, Value) -> Error,
+    ) -> Result<T, Error>
+    where
+        B: Serialize + ?Sized,
+        T: DeserializeOwned,
+    {
         let bytes = body
             .map(serde_json::to_vec)
             .transpose()
             .map_err(Error::Decode)?;
         let (status, value) = self.send(method, path, bytes)?;
         if !(200..300).contains(&status) {
-            return Err(api_error(status, value));
+            return Err(on_error(status, value));
         }
         serde_json::from_value(value).map_err(Error::Decode)
     }

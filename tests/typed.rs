@@ -115,6 +115,57 @@ fn generate_returns_the_direct_debit_xml() {
 }
 
 #[test]
+fn generate_refuses_bad_rows_with_typed_findings() {
+    let Some(client) = live() else { return };
+    let error = client
+        .generate(
+            &fixture("bad-currency.pain.001.001.09.csv"),
+            "payments.csv",
+            MessageType::Pain00100109,
+            None,
+        )
+        .expect_err("refused");
+    assert_eq!(error.status(), Some(422));
+    let refusal = error.refusal().expect("typed refusal");
+    assert!(!refusal.success && refusal.xml.is_none());
+    assert!(refusal.message.contains("Validation failed"));
+    assert!(refusal.scheme_violations.is_empty());
+    assert_eq!(refusal.validation_errors[0].field, "$.currency");
+    assert_eq!(refusal.validation_errors[0].value, Some(json!("EURO")));
+}
+
+#[test]
+fn generate_refuses_a_scheme_breach_with_typed_findings() {
+    let Some(client) = live() else { return };
+    let error = client
+        .generate(
+            &fixture("chaps-no-purpose.pain.001.001.09.csv"),
+            "payments.csv",
+            MessageType::Pain00100109,
+            Some("uk-chaps"),
+        )
+        .expect_err("refused");
+    let Error::Refused { status, response } = error else {
+        panic!("unexpected {error:?}");
+    };
+    assert_eq!(status, 422);
+    assert!(response.validation_errors.is_empty());
+    let violation = &response.scheme_violations[0];
+    assert_eq!(
+        (
+            &violation["rule"],
+            &violation["severity"],
+            &violation["field"]
+        ),
+        (
+            &json!("UK-CHAPS-PURP"),
+            &json!("error"),
+            &json!("purpose_code")
+        )
+    );
+}
+
+#[test]
 fn check_passes_the_valid_document() {
     let Some(client) = live() else { return };
     let report = client
