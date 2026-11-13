@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+name: Feature Request
+description: Suggest a change to the pain001 Rust client
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: |
+        What can't you do from Rust today? If the server already offers
+        it, name the endpoint.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: |
+        Sketch the method or type: its signature, what it sends and what
+        it returns. New endpoints belong in pain001 core first.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Area
+      options:
+        - A new endpoint wrapper
+        - Response types
+        - Errors
+        - Client configuration (timeout, auth, TLS)
+        - Documentation or examples
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Real-World Use Case
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+  - type: textarea
+    id: contribution
+    attributes:
+      label: Willingness To Contribute

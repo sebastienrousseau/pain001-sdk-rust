@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+blank_issues_enabled: true
+contact_links:
+  - name: Questions
+    url: https://github.com/sebastienrousseau/pain001-sdk-rust/issues/new
+    about: Ask usage questions in an issue here. The pain001 suite does not use GitHub Discussions.
+  - name: pain001-sdk-rust Documentation
+    url: https://github.com/sebastienrousseau/pain001-sdk-rust/blob/main/README.md
+    about: Read the README before opening an issue.
+  - name: Contributing Guide
+    url: https://github.com/sebastienrousseau/pain001-sdk-rust/blob/main/CONTRIBUTING.md
+    about: Follow contribution and review expectations.
+  - name: Security disclosure
+    url: https://github.com/sebastienrousseau/pain001-sdk-rust/blob/main/SECURITY.md
+    about: Do NOT open public issues for vulnerabilities.

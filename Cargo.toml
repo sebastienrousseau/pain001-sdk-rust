@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+[package]
+name = "pain001-sdk"
+version = "0.0.87"
+edition = "2021"
+rust-version = "1.85"
+description = "Typed blocking client for the pain001 REST API (ISO 20022 pain.001 and pain.008)"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/sebastienrousseau/pain001-sdk-rust"
+homepage = "https://pain001.com"
+readme = "README.md"
+keywords = ["iso20022", "pain001", "payments", "sepa", "client"]
+categories = ["api-bindings", "finance"]
+publish = false
+
+[lib]
+name = "pain001_sdk"
+
+[features]
+default = ["tls"]
+# HTTPS through rustls (ring provider). Drop it with
+# `default-features = false` to talk to a loopback server over plain HTTP.
+tls = ["ureq/rustls"]
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+ureq = { version = "3.5.1", default-features = false }
+
+[dev-dependencies]
+sha2 = "0.10.9"

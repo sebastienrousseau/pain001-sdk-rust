@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# Format, lint, build and test on stable and on the minimum supported
+# Rust (rust-version in Cargo.toml), the dependency policy (cargo-deny),
+# and the conformance kit against a live `pain001 serve`.
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Format and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy (default features)
+        run: >-
+          cargo clippy --locked --all-targets --
+          -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
+      - name: Clippy (no default features)
+        run: >-
+          cargo clippy --locked --all-targets --no-default-features --
+          -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
+      - name: Docs
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --locked --no-deps
+
+  test:
+    name: Build and unit tests (${{ matrix.toolchain }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # stable, and the MSRV: keep 1.85.0 equal to rust-version.
+        toolchain: [stable, 1.85.0]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - name: Build
+        run: cargo build --locked --all-targets
+      - name: Unit tests (live tests report themselves skipped)
+        run: cargo test --locked
+
+  deny:
+    name: Dependency policy (cargo-deny)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked --version 0.20.2
+      - name: Advisories, licences, bans, sources
+        run: cargo deny --locked check
+
+  conformance:
+    name: Conformance kit against pain001 serve
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - name: Install the server (hash-pinned)
+        run: |
+          python -m venv "$RUNNER_TEMP/server"
+          "$RUNNER_TEMP/server/bin/python" -m pip install --quiet --require-hashes \
+            -r ci/server-requirements.txt
+      - name: Start pain001 serve
+        run: |
+          cd "$RUNNER_TEMP"
+          nohup "$RUNNER_TEMP/server/bin/pain001" serve --host 127.0.0.1 --port 8000 \
+            > "$RUNNER_TEMP/server.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/api/v1/health; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/server.log"
+          exit 1
+      - name: Conformance and typed tests
+        env:
+          PAIN001_BASE_URL: http://127.0.0.1:8000
+        run: cargo test --locked --test conformance --test typed -- --nocapture
+      - name: Example
+        env:
+          PAIN001_BASE_URL: http://127.0.0.1:8000
+        run: cargo run --locked --example basic -- "$RUNNER_TEMP/payments.xml"
+      - name: Server log
+        if: failure()
+        run: cat "$RUNNER_TEMP/server.log"
