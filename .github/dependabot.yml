@@ -16,6 +16,13 @@ updates:
     commit-message:
       prefix: "chore(deps):"
       include: "scope"
+    # sha2 0.11.1 and later declare rust-version 1.88, above this crate's
+    # 1.85 floor (docs/POLICIES.md); 0.11.0 is the newest within it. It is
+    # a dev-dependency (the kit checksum test), so it does not justify
+    # raising the MSRV. Drop this when the floor reaches 1.88.
+    ignore:
+      - dependency-name: "sha2"
+        versions: [">= 0.11.1"]
 
   - package-ecosystem: "pip"
     directory: "/ci"
