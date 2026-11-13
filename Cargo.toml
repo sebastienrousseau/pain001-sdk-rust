@@ -29,4 +29,4 @@ thiserror = "2.0.21"
 ureq = { version = "3.5.1", default-features = false }
 
 [dev-dependencies]
-sha2 = "0.10.9"
+sha2 = "0.11.0"

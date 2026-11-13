@@ -9,6 +9,15 @@ first release will be 0.0.86.
 
 ## [Unreleased]
 
+### Changed
+
+- The test-only `sha2` dependency moves to 0.11.0 (was 0.10.9). The
+  kit checksum test hex-encodes the digest itself, since 0.11's output
+  type has no `LowerHex`. 0.11.0 is the newest release within the 1.85
+  MSRV (0.11.1 needs Rust 1.88), so Dependabot skips 0.11.1 and later
+  until the floor rises. The runtime dependencies and the MSRV are
+  unchanged.
+
 ### Added
 
 - `Client`, a blocking client for the pain001 REST API on `ureq`, with

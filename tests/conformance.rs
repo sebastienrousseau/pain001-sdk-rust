@@ -8,6 +8,7 @@
 //! need no server: they pin the JSON Pointer lookup, `$file` resolution,
 //! the failure messages and the kit's SHA-256 sums.
 
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -312,7 +313,13 @@ fn the_vendored_kit_matches_its_pinned_sums() {
     for line in sums.lines() {
         let (digest, name) = line.split_once("  ").expect("<sha256>  <path>");
         let bytes = fs::read(kit().join(name)).expect("read kit file");
-        let actual = format!("{:x}", Sha256::digest(&bytes));
+        let actual =
+            Sha256::digest(&bytes)
+                .iter()
+                .fold(String::with_capacity(64), |mut hex, byte| {
+                    let _ = write!(hex, "{byte:02x}");
+                    hex
+                });
         assert_eq!(
             actual, digest,
             "{name} changed: re-vendor the kit from core"
