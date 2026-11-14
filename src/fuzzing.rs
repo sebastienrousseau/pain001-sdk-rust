@@ -46,11 +46,13 @@ mod tests {
         assert!(refused.refusal().is_some());
         let plain = decode::<GenerateResponse>(422, r#"{"success":false,"message":"m"}"#)
             .expect_err("api error");
-        assert!(matches!(plain, Error::Api { status: 422, .. }));
-        assert!(matches!(
-            decode::<HealthResponse>(204, ""),
-            Err(Error::Decode(_))
-        ));
+        assert_eq!((plain.status(), plain.refusal()), (Some(422), None));
+        let empty = decode::<HealthResponse>(204, "").expect_err("decode");
+        assert_eq!(
+            empty.to_string(),
+            "pain001 API response could not be decoded: \
+             invalid type: null, expected struct HealthResponse"
+        );
         assert_eq!(parse_body("not json"), json!("not json"));
     }
 }

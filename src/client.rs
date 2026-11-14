@@ -183,11 +183,7 @@ impl Client {
         path: &str,
         body: Option<&Value>,
     ) -> Result<(u16, Value), Error> {
-        let bytes = body
-            .map(serde_json::to_vec)
-            .transpose()
-            .map_err(Error::Decode)?;
-        self.send(method, path, bytes)
+        self.exchange(method, path, body)
     }
 
     fn call<B, T>(&self, method: &str, path: &str, body: Option<&B>) -> Result<T, Error>
@@ -211,15 +207,30 @@ impl Client {
         B: Serialize + ?Sized,
         T: DeserializeOwned,
     {
+        let (status, value) = self.exchange(method, path, body)?;
+        decode(status, value, on_error)
+    }
+
+    /// Encodes `body` as JSON and sends the request.
+    fn exchange<B>(&self, method: &str, path: &str, body: Option<&B>) -> Result<(u16, Value), Error>
+    where
+        B: Serialize + ?Sized,
+    {
         let bytes = body
             .map(serde_json::to_vec)
             .transpose()
             .map_err(Error::Decode)?;
-        let (status, value) = self.send(method, path, bytes)?;
-        decode(status, value, on_error)
+        self.send(method, path, bytes)
     }
 
     fn send(&self, method: &str, path: &str, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
+        let head = self.head(method, path)?;
+        self.once(head, body)
+    }
+
+    /// The request line and headers every call shares; an invalid method
+    /// or URL fails here, before anything is sent.
+    fn head(&self, method: &str, path: &str) -> Result<http::Request<()>, Error> {
         let mut builder = http::Request::builder()
             .method(method)
             .uri(format!("{}{}", self.base_url, path))
@@ -228,15 +239,22 @@ impl Client {
         if let Some(key) = &self.api_key {
             builder = builder.header("Authorization", format!("Bearer {key}"));
         }
+        builder.body(()).map_err(Error::transport)
+    }
+
+    /// Sends `head` once, with `body` as JSON when there is one, and reads
+    /// the status and the parsed body.
+    fn once(&self, head: http::Request<()>, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
         let result = match body {
             Some(bytes) => {
-                let request = builder
-                    .header("Content-Type", "application/json")
-                    .body(bytes)
-                    .map_err(Error::transport)?;
-                self.agent.run(request)
+                let (mut parts, ()) = head.into_parts();
+                parts.headers.insert(
+                    http::header::CONTENT_TYPE,
+                    http::HeaderValue::from_static("application/json"),
+                );
+                self.agent.run(http::Request::from_parts(parts, bytes))
             }
-            None => self.agent.run(builder.body(()).map_err(Error::transport)?),
+            None => self.agent.run(head),
         };
         let mut response = result.map_err(Error::transport)?;
         let status = response.status().as_u16();

@@ -64,6 +64,10 @@ first release will be 0.0.88.
 - CI on stable and on Rust 1.85.0, cargo-deny, the conformance job
   against `pain001 serve` 0.0.86 from hash-pinned requirements, the DCO
   check and Markdown lint.
+- A coverage gate: `make coverage` (part of `make check`) and the CI
+  `coverage` job run cargo-llvm-cov and fail below 100% of lines or
+  regions in `src/`, the `cfg(fuzzing)` decoding module included. There
+  are no exclusions.
 - Fuzzing with cargo-fuzz in `fuzz/`, a crate of its own: the
   `response` target decodes any 2xx body as every typed call's
   response, and the `error` target maps any status and body to the

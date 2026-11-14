@@ -6,9 +6,9 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: check fmt fmt-check lint build test doc deny conformance demo clean
+.PHONY: check fmt fmt-check lint build test coverage doc deny conformance demo clean
 
-check: fmt-check lint build test doc deny
+check: fmt-check lint build test coverage doc deny
 
 fmt:
 	$(CARGO) fmt
@@ -25,6 +25,13 @@ build:
 
 test:
 	$(CARGO) test --locked
+
+# 100% of lines and regions in src/, or the target fails. Needs
+# cargo-llvm-cov (`cargo install cargo-llvm-cov --locked`) and the
+# llvm-tools-preview component. The live tests add nothing without
+# PAIN001_BASE_URL: the unit tests alone reach 100%.
+coverage:
+	$(CARGO) llvm-cov --locked --lib --tests --fail-under-lines 100 --fail-under-regions 100
 
 doc:
 	RUSTDOCFLAGS="-D warnings" $(CARGO) doc --locked --no-deps

@@ -2,7 +2,7 @@
 //! Client unit tests against the loopback stub; no pain001 server needed.
 
 use super::*;
-use crate::stub::serve;
+use crate::stub::{response, serve, serve_raw};
 use crate::MessageType;
 use serde_json::json;
 use std::time::Duration;
@@ -234,4 +234,45 @@ fn helpers_parse_and_encode() {
     assert_eq!(encode_segment("berlin_group"), "berlin_group");
     assert_eq!(encode_segment("é?"), "%C3%A9%3F");
     assert_eq!(DEFAULT_TIMEOUT, Duration::from_secs(30));
+}
+
+#[test]
+fn a_body_cut_short_is_a_transport_error() {
+    // The stub promises 64 bytes, sends 9 and closes the connection.
+    let mut raw = response(200, "");
+    raw.truncate(raw.len() - "Content-Length: 0\r\nConnection: close\r\n\r\n".len());
+    raw.extend_from_slice(b"Content-Length: 64\r\nConnection: close\r\n\r\n{\"status\"");
+    let (url, _seen) = serve_raw(raw);
+    let error = Client::new(url).health().expect_err("short body");
+    assert!(matches!(error, Error::Transport(_)), "{error:?}");
+}
+
+/// A request body whose `Serialize` fails when it holds `false`, which
+/// none of the client's own request types can do. One type for both
+/// outcomes, so one instantiation of `exchange` covers both.
+struct Encodable(bool);
+
+impl Serialize for Encodable {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        if self.0 {
+            return serializer.serialize_bool(true);
+        }
+        Err(serde::ser::Error::custom("cannot encode"))
+    }
+}
+
+#[test]
+fn a_body_that_cannot_be_encoded_is_a_decode_error_and_is_not_sent() {
+    let (url, seen) = serve(200, "{}");
+    let client = Client::new(url);
+    let error = client
+        .exchange("POST", "/x", Some(&Encodable(false)))
+        .expect_err("encode");
+    assert!(matches!(error, Error::Decode(_)), "{error:?}");
+    // The stub is still waiting: the failed call sent nothing.
+    let (status, _) = client
+        .exchange("POST", "/x", Some(&Encodable(true)))
+        .expect("sent");
+    assert_eq!(status, 200);
+    assert_eq!(seen.recv().expect("request").body, "true");
 }

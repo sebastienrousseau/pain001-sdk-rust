@@ -65,6 +65,23 @@ jobs:
       - name: Unit tests (live tests report themselves skipped)
         run: cargo test --locked
 
+  coverage:
+    name: Coverage (100% lines and regions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        with:
+          tool: cargo-llvm-cov@0.9.1
+      - name: Coverage gate
+        run: make coverage
+
   deny:
     name: Dependency policy (cargo-deny)
     runs-on: ubuntu-latest
