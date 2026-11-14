@@ -6,9 +6,9 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: versions package-check api-check check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
+.PHONY: complexity versions package-check api-check check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
 
-check: fmt-check lint build test coverage doc deny versions package-check
+check: fmt-check lint build test coverage doc deny versions package-check complexity
 
 fmt:
 	$(CARGO) fmt
@@ -39,6 +39,13 @@ doc:
 # Needs cargo-deny (`cargo install cargo-deny --locked`).
 deny:
 	$(CARGO) deny --locked check
+
+# Cyclomatic 10, cognitive 15, Halstead difficulty 30 and 60 lines per
+# function, 500 lines per file, on every tracked .rs file. Needs
+# rust-code-analysis-cli 0.0.25 (`cargo install rust-code-analysis-cli
+# --locked --version 0.0.25`).
+complexity:
+	python3 -I scripts/complexity-gate.py
 
 # Every restatement of the version agrees with Cargo.toml.
 versions:

@@ -67,6 +67,21 @@ jobs:
       - name: Benchmark smoke run (round trips skip without a server)
         run: make bench-smoke
 
+  complexity:
+    name: Complexity ceilings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The version the baseline was measured with; bump both together.
+      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        with:
+          tool: rust-code-analysis-cli@0.0.25
+      - name: Cyclomatic, cognitive, Halstead and length per function
+        run: make complexity
+
   release-checks:
     name: Versions, package contents and API breakage
     runs-on: ubuntu-latest

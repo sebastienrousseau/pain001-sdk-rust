@@ -24,6 +24,11 @@ first release will be 0.0.88.
 
 ### Added
 
+- `scripts/complexity-gate.py` (`make complexity`, part of `make check`,
+  and a CI job): every tracked `.rs` file is held to cyclomatic 10,
+  cognitive 15, Halstead difficulty 30 and 60 lines per function, and
+  500 lines per file, measured with rust-code-analysis-cli 0.0.25,
+  against a committed baseline that is empty because nothing is over.
 - Publishing to crates.io as `pain001-sdk`: `Cargo.toml` now says
   `publish = ["crates-io"]` (was `publish = false`), and
   `.github/workflows/release.yml` releases a `v<version>` tag: version
