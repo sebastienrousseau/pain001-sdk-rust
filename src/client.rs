@@ -9,7 +9,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 use ureq::http;
 
-use crate::error::{api_error, generate_error, Error};
+use crate::error::{api_error, generate_error, generated, Error};
 use crate::types::{
     CheckRequest, CheckResponse, FaceInfo, FaceRequest, FaceResponse, FilePayload,
     GenerateResponse, HealthResponse, ValidationResponse,
@@ -107,7 +107,9 @@ impl Client {
     ///
     /// [`Error::Refused`] when the server refuses the rows or a scheme rule
     /// (HTTP `422`), carrying the typed findings; [`Error::Api`] for any
-    /// other non-2xx reply, such as a `400` for an unreadable file.
+    /// other non-2xx reply, such as a `400` for an unreadable file;
+    /// [`Error::Decode`] for a 2xx reply without `success: true` and the
+    /// XML, so an `Ok` always carries the document.
     pub fn generate(
         &self,
         content: &str,
@@ -122,6 +124,7 @@ impl Client {
             scheme,
         };
         self.call_with("POST", "/api/v1/ui/generate", Some(&body), generate_error)
+            .and_then(generated)
     }
 
     /// `POST /api/v1/check`: runs the validation ladder on an existing
@@ -206,10 +209,7 @@ impl Client {
             .transpose()
             .map_err(Error::Decode)?;
         let (status, value) = self.send(method, path, bytes)?;
-        if !(200..300).contains(&status) {
-            return Err(on_error(status, value));
-        }
-        serde_json::from_value(value).map_err(Error::Decode)
+        decode(status, value, on_error)
     }
 
     fn send(&self, method: &str, path: &str, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
@@ -250,8 +250,25 @@ fn build_agent(timeout: Duration) -> ureq::Agent {
         .new_agent()
 }
 
+/// Turns a status and its parsed body into the typed result: a 2xx body
+/// decodes as `T` (or fails with [`Error::Decode`]), any other status goes
+/// to `on_error`.
+pub(crate) fn decode<T>(
+    status: u16,
+    value: Value,
+    on_error: fn(u16, Value) -> Error,
+) -> Result<T, Error>
+where
+    T: DeserializeOwned,
+{
+    if !(200..300).contains(&status) {
+        return Err(on_error(status, value));
+    }
+    serde_json::from_value(value).map_err(Error::Decode)
+}
+
 /// Parses a response body: empty is `null`, non-JSON is a JSON string.
-fn parse_body(text: &str) -> Value {
+pub(crate) fn parse_body(text: &str) -> Value {
     if text.trim().is_empty() {
         return Value::Null;
     }

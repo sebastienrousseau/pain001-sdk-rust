@@ -23,7 +23,8 @@ pub enum Error {
         detail: Value,
     },
     /// The server refused to generate a document: a `422` from a generate
-    /// call whose body is a [`GenerateResponse`] with `success: false`.
+    /// call whose body is a [`GenerateResponse`] with `success: false` and
+    /// no `xml`.
     ///
     /// `response` carries the findings, typed: `validation_errors` for rows
     /// that failed field checks and `scheme_violations` for scheme-rulebook
@@ -83,18 +84,33 @@ impl Error {
 }
 
 /// Builds the error for a non-2xx reply to a generate call: a `422` whose
-/// body decodes as a [`GenerateResponse`] with `success: false` becomes
-/// [`Error::Refused`], anything else goes through [`api_error`].
+/// body decodes as a [`GenerateResponse`] with `success: false` and no
+/// `xml` becomes [`Error::Refused`], anything else goes through
+/// [`api_error`].
 pub(crate) fn generate_error(status: u16, body: Value) -> Error {
     if status == 422 && body.get("success") == Some(&Value::Bool(false)) {
         if let Ok(response) = serde_json::from_value::<GenerateResponse>(body.clone()) {
-            return Error::Refused {
-                status,
-                response: Box::new(response),
-            };
+            if response.xml.is_none() {
+                return Error::Refused {
+                    status,
+                    response: Box::new(response),
+                };
+            }
         }
     }
     api_error(status, body)
+}
+
+/// Checks a decoded 2xx reply to a generate call: it must report
+/// `success: true` and carry the XML, so an `Ok` always has a document.
+/// Anything else is [`Error::Decode`].
+pub(crate) fn generated(response: GenerateResponse) -> Result<GenerateResponse, Error> {
+    if response.success && response.xml.is_some() {
+        return Ok(response);
+    }
+    Err(Error::Decode(serde::de::Error::custom(
+        "a 2xx generate response must have success: true and the xml",
+    )))
 }
 
 /// Builds [`Error::Api`] from a non-2xx status and its parsed body.
@@ -162,6 +178,15 @@ mod tests {
             matches!(broken, Error::Api { status: 422, detail } if detail == json!({"success": false}))
         );
         assert!(api_error(422, json!({})).refusal().is_none());
+    }
+
+    #[test]
+    fn a_refusal_body_that_carries_xml_stays_an_api_error() {
+        // The `error` fuzz target checks this: `Refused` documents its
+        // response as having `success: false` and no `xml`.
+        let body = json!({"success": false, "message": "m", "xml": "<x/>"});
+        let error = generate_error(422, body.clone());
+        assert!(matches!(error, Error::Api { status: 422, detail } if detail == body));
     }
 
     #[test]

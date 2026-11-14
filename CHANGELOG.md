@@ -51,3 +51,23 @@ first release will be 0.0.86.
 - CI on stable and on Rust 1.85.0, cargo-deny, the conformance job
   against `pain001 serve` 0.0.86 from hash-pinned requirements, the DCO
   check and Markdown lint.
+- Fuzzing with cargo-fuzz in `fuzz/`, a crate of its own: the
+  `response` target decodes any 2xx body as every typed call's
+  response, and the `error` target maps any status and body to the
+  error a call returns, both checking the documented contracts (only
+  `Error::Decode` for a 2xx, the documented `detail` for `Error::Api`,
+  `Error::Refused` only for a refusal body). They reach the decoding
+  path through `pain001_sdk::fuzzing`, which exists only under
+  `cfg(fuzzing)` and is not public API. A pull request runs each target
+  for 30 seconds from the seeds in `fuzz/seeds/`.
+
+### Fixed
+
+- `generate` returns `Error::Decode` for a 2xx reply that lacks
+  `success: true` or the XML, so an `Ok` always carries the document as
+  the README says; it used to return the `GenerateResponse` with
+  `xml: None`. A `422` whose body has `success: false` but also carries
+  `xml` stays `Error::Api` instead of becoming `Error::Refused`, whose
+  response is documented to have no XML. pain001 0.0.87 sends neither
+  shape; adding the fuzz targets showed that the client enforced
+  neither promise.

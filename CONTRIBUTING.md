@@ -28,6 +28,17 @@ PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
 
 Without `PAIN001_BASE_URL` they print a skip message and pass.
 
+The fuzz targets in `fuzz/` need a nightly toolchain and cargo-fuzz
+(`cargo install cargo-fuzz --locked`):
+
+```sh
+cargo +nightly fuzz run response fuzz/corpus/response fuzz/seeds/response -- -max_total_time=60
+cargo +nightly fuzz run error fuzz/corpus/error fuzz/seeds/error -- -max_total_time=60
+```
+
+A crash input lands in `fuzz/artifacts/`; fix the cause, add a unit
+test for it in the main crate, and add the input to `fuzz/seeds/`.
+
 ## Rules
 
 - **`conformance/` is vendored from pain001 core.** Never edit it here.

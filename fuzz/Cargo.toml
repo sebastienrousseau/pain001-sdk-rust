@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# cargo-fuzz targets for the response decoding path: `cargo +nightly fuzz
+# run <target>` from the repository root. A crate of its own, with its own
+# lockfile and an empty `[workspace]`, so it never touches the main
+# crate's MSRV, dependency policy or package contents.
+[package]
+name = "pain001-sdk-fuzz"
+version = "0.0.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+
+[lib]
+name = "pain001_sdk_fuzz"
+path = "src/lib.rs"
+
+[dependencies]
+libfuzzer-sys = "0.4.13"
+pain001-sdk = { path = "..", default-features = false }
+serde_json = "1.0.154"
+
+[[bin]]
+name = "response"
+path = "fuzz_targets/response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "error"
+path = "fuzz_targets/error.rs"
+test = false
+doc = false
+bench = false
