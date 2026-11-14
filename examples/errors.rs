@@ -36,39 +36,37 @@ fn fixture(name: &str) -> std::io::Result<String> {
     std::fs::read_to_string(format!("{dir}{name}"))
 }
 
-/// What kind of error `result` holds, printing its details.
+/// What kind of error `result` holds, after printing its details.
 fn kind<T>(result: Result<T, Error>) -> &'static str {
-    match result {
-        Ok(_) => "ok",
-        Err(error @ Error::Api { .. }) if error.request_errors().is_some() => {
-            for item in error.request_errors().unwrap_or_default() {
-                println!("  request error at {:?}: {}", item.loc, item.msg);
-            }
-            "api-array"
-        }
-        Err(Error::Api { status, detail }) => {
-            println!("  HTTP {status}: {detail}");
-            "api"
-        }
-        Err(Error::Refused { status, response }) => {
+    let Err(error) = result else { return "ok" };
+    describe(&error);
+    match error {
+        Error::Api { .. } if error.request_errors().is_some() => "api-array",
+        Error::Api { .. } => "api",
+        Error::Refused { .. } => "refused",
+        Error::Decode(_) => "decode",
+        Error::Transport(_) => "transport",
+        _ => "other",
+    }
+}
+
+/// Prints what a caller would log for each kind of error.
+fn describe(error: &Error) {
+    match error {
+        Error::Api { status, detail } => match error.request_errors() {
+            Some(items) => items
+                .iter()
+                .for_each(|item| println!("  HTTP {status} at {:?}: {}", item.loc, item.msg)),
+            None => println!("  HTTP {status}: {detail}"),
+        },
+        Error::Refused { status, response } => {
             println!("  HTTP {status}: {}", response.message);
             for row in &response.validation_errors {
                 println!("  row error: {} {}", row.field, row.message);
             }
-            "refused"
         }
-        Err(Error::Decode(error)) => {
-            println!("  no usable document: {error}");
-            "decode"
-        }
-        Err(Error::Transport(error)) => {
-            println!("  transport: {error}");
-            "transport"
-        }
-        Err(other) => {
-            println!("  {other}");
-            "other"
-        }
+        Error::Decode(error) => println!("  no usable document: {error}"),
+        other => println!("  {other}"),
     }
 }
 

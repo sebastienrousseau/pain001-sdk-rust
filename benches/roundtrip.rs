@@ -27,9 +27,22 @@ fn live() -> Option<Client> {
     })
 }
 
-fn roundtrips(c: &mut Criterion, client: &Client) {
+fn reads(c: &mut Criterion, client: &Client) {
     let mut group = c.benchmark_group("roundtrip");
     group.bench_function("health", |b| b.iter(|| client.health().expect("health")));
+    group.bench_function("faces", |b| b.iter(|| client.faces().expect("faces")));
+    group.bench_function("request", |b| {
+        b.iter(|| {
+            client
+                .request("GET", "/api/v1/health", None)
+                .expect("request")
+        })
+    });
+    group.finish();
+}
+
+fn files(c: &mut Criterion, client: &Client) {
+    let mut group = c.benchmark_group("roundtrip");
     group.bench_function("validate", |b| {
         b.iter(|| {
             client
@@ -44,22 +57,19 @@ fn roundtrips(c: &mut Criterion, client: &Client) {
                 .expect("generate")
         })
     });
+    group.finish();
+}
+
+fn documents(c: &mut Criterion, client: &Client) {
+    let mut group = c.benchmark_group("roundtrip");
     group.bench_function("check", |b| {
         b.iter(|| client.check(black_box(XML), None, None).expect("check"))
     });
-    group.bench_function("faces", |b| b.iter(|| client.faces().expect("faces")));
     group.bench_function("project_face", |b| {
         b.iter(|| {
             client
                 .project_face("berlin_group", black_box(XML), None, None)
                 .expect("project_face")
-        })
-    });
-    group.bench_function("request", |b| {
-        b.iter(|| {
-            client
-                .request("GET", "/api/v1/health", None)
-                .expect("request")
         })
     });
     group.finish();
@@ -68,6 +78,8 @@ fn roundtrips(c: &mut Criterion, client: &Client) {
 fn main() {
     let Some(client) = live() else { return };
     let mut criterion = Criterion::default().configure_from_args();
-    roundtrips(&mut criterion, &client);
+    reads(&mut criterion, &client);
+    files(&mut criterion, &client);
+    documents(&mut criterion, &client);
     criterion.final_summary();
 }

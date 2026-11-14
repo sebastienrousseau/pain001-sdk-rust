@@ -29,7 +29,7 @@ const FACE: &str = include_str!("responses/face.json");
 
 const MT: &str = "pain.001.001.09";
 
-fn encode(c: &mut Criterion) {
+fn encode_files(c: &mut Criterion) {
     let mut group = c.benchmark_group("encode");
     group.bench_function("validate", |b| {
         b.iter(|| file_body(black_box(CSV), "payments.csv", MT, None))
@@ -37,6 +37,11 @@ fn encode(c: &mut Criterion) {
     group.bench_function("generate", |b| {
         b.iter(|| file_body(black_box(CSV), "payments.csv", MT, Some("sepa-sct")))
     });
+    group.finish();
+}
+
+fn encode_documents(c: &mut Criterion) {
+    let mut group = c.benchmark_group("encode");
     group.bench_function("check", |b| {
         b.iter(|| check_body(black_box(XML), None, None))
     });
@@ -48,14 +53,14 @@ fn encode(c: &mut Criterion) {
             )
         })
     });
+    let body = serde_json::json!({ "xml": XML });
     group.bench_function("request", |b| {
-        let body = serde_json::json!({ "xml": XML });
         b.iter(|| serde_json::to_vec(black_box(&body)))
     });
     group.finish();
 }
 
-fn decode_responses(c: &mut Criterion) {
+fn decode_small(c: &mut Criterion) {
     let mut group = c.benchmark_group("decode");
     group.bench_function("health", |b| {
         b.iter(|| decode::<HealthResponse>(200, black_box(HEALTH)))
@@ -63,18 +68,28 @@ fn decode_responses(c: &mut Criterion) {
     group.bench_function("validate", |b| {
         b.iter(|| decode::<ValidationResponse>(200, black_box(VALIDATE)))
     });
+    group.bench_function("check", |b| {
+        b.iter(|| decode::<CheckResponse>(200, black_box(CHECK)))
+    });
+    group.finish();
+}
+
+fn decode_generate(c: &mut Criterion) {
+    let mut group = c.benchmark_group("decode");
     group.bench_function("generate", |b| {
         b.iter(|| generate(200, black_box(GENERATE)))
     });
     group.bench_function("generate_refused", |b| {
         b.iter(|| generate(422, black_box(REFUSAL)))
     });
-    group.bench_function("check", |b| {
-        b.iter(|| decode::<CheckResponse>(200, black_box(CHECK)))
-    });
     group.bench_function("faces", |b| {
         b.iter(|| decode::<Vec<FaceInfo>>(200, black_box(FACES)))
     });
+    group.finish();
+}
+
+fn decode_documents(c: &mut Criterion) {
+    let mut group = c.benchmark_group("decode");
     group.bench_function("project_face", |b| {
         b.iter(|| decode::<FaceResponse>(200, black_box(FACE)))
     });
@@ -84,7 +99,7 @@ fn decode_responses(c: &mut Criterion) {
 
 /// Fails fast if a recorded response no longer decodes, rather than
 /// timing an error path.
-fn recorded_responses_decode(c: &mut Criterion) {
+fn recorded_responses_decode(_: &mut Criterion) {
     decode::<HealthResponse>(200, HEALTH).expect("health.json");
     decode::<ValidationResponse>(200, VALIDATE).expect("validate.json");
     generate(200, GENERATE).expect("generate.json");
@@ -95,9 +110,15 @@ fn recorded_responses_decode(c: &mut Criterion) {
     decode::<CheckResponse>(200, CHECK).expect("check.json");
     decode::<Vec<FaceInfo>>(200, FACES).expect("faces.json");
     decode::<FaceResponse>(200, FACE).expect("face.json");
-    encode(c);
-    decode_responses(c);
 }
 
-criterion_group!(benches, recorded_responses_decode);
+criterion_group!(
+    benches,
+    recorded_responses_decode,
+    encode_files,
+    encode_documents,
+    decode_small,
+    decode_generate,
+    decode_documents
+);
 criterion_main!(benches);
