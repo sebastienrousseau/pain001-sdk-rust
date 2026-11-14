@@ -22,6 +22,16 @@ fn health_decodes_and_sends_no_body() {
 }
 
 #[test]
+fn every_request_carries_the_user_agent() {
+    let (url, seen) = serve(200, "[]");
+    Client::new(url).faces().expect("faces");
+    let seen = seen.recv().expect("request");
+    assert_eq!(seen.header("user-agent"), Some(USER_AGENT));
+    assert_eq!(USER_AGENT, format!("pain001-sdk-rust/{VERSION}"));
+    assert_eq!(VERSION, env!("CARGO_PKG_VERSION"));
+}
+
+#[test]
 fn the_api_key_travels_as_a_bearer_token_and_never_in_debug() {
     let (url, seen) = serve(200, "[]");
     let client = Client::new(url)

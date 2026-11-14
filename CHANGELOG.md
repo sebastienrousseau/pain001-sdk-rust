@@ -24,6 +24,10 @@ first release will be 0.0.88.
 
 ### Added
 
+- Every request sends `User-Agent: pain001-sdk-rust/<version>`, so a
+  server's access log shows which client and release made a call; it
+  used to be ureq's default. `VERSION` and `USER_AGENT` are exported,
+  both derived from `Cargo.toml`.
 - A README demo, `.github/demo.gif`, rendered by `make demo` from
   `.github/demo.tape`: `cargo run --example basic` against a
   `pain001 serve` on 127.0.0.1, then the head of the generated file. The

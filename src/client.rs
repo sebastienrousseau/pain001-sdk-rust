@@ -19,6 +19,13 @@ use crate::types::{
 /// read), until [`Client::timeout`] changes it.
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
+/// This crate's version, from `Cargo.toml`.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// The `User-Agent` every request sends: `pain001-sdk-rust/<VERSION>`, so a
+/// server's access log shows which client and release made a call.
+pub const USER_AGENT: &str = concat!("pain001-sdk-rust/", env!("CARGO_PKG_VERSION"));
+
 /// Largest response body read, in bytes. A generated document for the
 /// largest accepted input (10 MiB) fits with room to spare.
 const BODY_LIMIT: u64 = 64 * 1024 * 1024;
@@ -216,7 +223,8 @@ impl Client {
         let mut builder = http::Request::builder()
             .method(method)
             .uri(format!("{}{}", self.base_url, path))
-            .header("Accept", "application/json");
+            .header("Accept", "application/json")
+            .header("User-Agent", USER_AGENT);
         if let Some(key) = &self.api_key {
             builder = builder.header("Authorization", format!("Bearer {key}"));
         }

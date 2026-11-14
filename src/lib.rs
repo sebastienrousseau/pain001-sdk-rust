@@ -41,7 +41,7 @@ mod stub;
 #[doc(hidden)]
 pub mod fuzzing;
 
-pub use client::{Client, DEFAULT_TIMEOUT};
+pub use client::{Client, DEFAULT_TIMEOUT, USER_AGENT, VERSION};
 pub use error::Error;
 pub use types::{
     CheckFinding, CheckResponse, FaceInfo, FaceResponse, GenerateResponse, HealthResponse,
