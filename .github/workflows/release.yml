@@ -1,0 +1,194 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+#
+# Releases pain001-sdk from a signed tag `v<version>`:
+#
+#   1. build: checks every version restatement against the tag, packages
+#      the crate (`cargo package`, which also builds it), checks the
+#      package contents, writes the CycloneDX SBOM and SHA256SUMS, and
+#      attests the build provenance of every file;
+#   2. release: creates the GitHub release with those files, then sets its
+#      title (`pain001-sdk-rust <version>`) and body (Highlights from
+#      releases/v<version>.md, What's Changed, Checksums, Full Changelog)
+#      with the suite's scripts/release_notes.py;
+#   3. publish: `cargo publish` to crates.io with a short-lived token from
+#      trusted publishing, in the `release` environment.
+#
+# Dry run: run the workflow by hand (workflow_dispatch) with `dry-run`
+# left on, or from a branch. It builds, packages and checks everything on the chosen ref,
+# prints the release body it would write, and skips the attestation, the
+# release and the publish.
+#
+# Safe to re-run: an existing release gets its assets replaced and its
+# notes rewritten, and a version already on crates.io is reported, not
+# failed.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Build and check only; no release, no publish
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  # A dispatch is a dry run unless it is on a tag with dry-run turned off,
+  # which re-runs that tag's release.
+  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && (inputs.dry-run || github.ref_type != 'tag') }}
+
+jobs:
+  build:
+    name: Package, SBOM and checksums
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # build provenance (skipped in a dry run)
+      attestations: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked --version 0.5.9
+      - name: Version
+        id: version
+        run: |
+          version="$(cargo metadata --locked --no-deps --format-version 1 \
+            | python3 -I -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Every version restatement agrees (with the tag on a release)
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if [ "$REF_TYPE" = tag ]; then
+            scripts/verify-release-versions --tag "$REF_NAME"
+          else
+            scripts/verify-release-versions
+          fi
+      - name: Package (builds the crate from the package)
+        run: cargo package --locked
+      - name: Package contents
+        run: scripts/check-package.sh
+      - name: SBOM, checksums
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir dist
+          cp "target/package/pain001-sdk-$VERSION.crate" dist/
+          cargo cyclonedx --format json --target all \
+            --override-filename "pain001-sdk-$VERSION.cdx"
+          mv "pain001-sdk-$VERSION.cdx.json" dist/
+          (cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS)
+      - name: Attest build provenance
+        if: env.DRY_RUN != 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    name: GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # create the release and upload its assets
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
+      - name: Release note for this version
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          test -f "releases/v$VERSION.md" || {
+            echo "::error::releases/v$VERSION.md is missing"; exit 1; }
+          cat "releases/v$VERSION.md"
+      - name: Dry run, the assets a release would carry
+        if: env.DRY_RUN == 'true'
+        run: ls -l dist && cat dist/SHA256SUMS
+      - name: Create the release, or replace its assets
+        if: env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber -R "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" dist/* --verify-tag -R "$GITHUB_REPOSITORY" \
+              --title "pain001-sdk-rust $VERSION" --notes "Release notes follow."
+          fi
+      - name: Title and notes in the suite's shape
+        if: env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          python3 -I scripts/release_notes.py publish --repo "$GITHUB_REPOSITORY" \
+            --tag "$TAG" --project pain001-sdk-rust
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json name,body \
+            --jq '.name, .body'
+
+  publish:
+    name: Publish to crates.io
+    needs: [build, release]
+    if: github.ref_type == 'tag' && !(github.event_name == 'workflow_dispatch' && inputs.dry-run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # trusted publishing
+    env:
+      HAS_BOOTSTRAP: ${{ secrets.CRATES_IO_BOOTSTRAP_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      # crates.io registers a trusted publisher only for a crate that
+      # exists, so the first version needs a token: the maintainer either
+      # publishes it by hand or sets CRATES_IO_BOOTSTRAP_TOKEN in the
+      # `release` environment for that one run (DEVELOPMENT.md).
+      - name: Authenticate with crates.io (trusted publishing)
+        id: auth
+        if: env.HAS_BOOTSTRAP != 'true'
+        uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_BOOTSTRAP_TOKEN || steps.auth.outputs.token }}
+        run: |
+          set -uo pipefail
+          out="$(cargo publish --locked 2>&1)" && rc=0 || rc=$?
+          echo "$out"
+          if [ "$rc" -ne 0 ]; then
+            if echo "$out" | grep -qE "already (exists|uploaded)"; then
+              echo "this version is already on crates.io; nothing to do"
+              exit 0
+            fi
+            exit "$rc"
+          fi

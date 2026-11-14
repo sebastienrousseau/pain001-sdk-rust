@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# The user manual: MkDocs Material from docs/, built with --strict by the
+# Manual workflow and deployed to GitHub Pages. Root documents are
+# included with pymdownx.snippets (docs/project/*.md), not copied.
+site_name: pain001-sdk-rust
+site_description: A typed, blocking Rust client for the pain001 REST API.
+site_url: https://sebastienrousseau.github.io/pain001-sdk-rust/
+copyright: '&copy; 2026 <a href="https://sebastienrousseau.com/" rel="author">Sebastien Rousseau</a>'
+repo_url: https://github.com/sebastienrousseau/pain001-sdk-rust
+repo_name: sebastienrousseau/pain001-sdk-rust
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+strict: true
+
+exclude_docs: |
+  requirements.in
+  requirements.txt
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Follow the system
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - API reference (docs.rs): https://docs.rs/pain001-sdk
+  - API reference (main): https://sebastienrousseau.github.io/pain001-sdk-rust/api/pain001_sdk/
+  - Architecture: ARCHITECTURE.md
+  - Ecosystem comparison: COMPARISON.md
+  - Benchmarks: BENCHMARKS.md
+  - Policies: POLICIES.md
+  - Packaging: packaging.md
+  - Roadmap: ROADMAP.md
+  - Decision records:
+      - Index: adr/README.md
+      - 1. A thin client over the server: adr/0001-thin-client-over-the-server.md
+      - 2. Runtime dependencies: adr/0002-runtime-dependencies.md
+      - 3. The error model: adr/0003-error-model.md
+      - 4. Opt-in retries: adr/0004-opt-in-retries.md
+      - 5. Publishing to crates.io: adr/0005-publish-to-crates-io.md
+  - Project:
+      - Development: project/development.md
+      - Contributing: project/contributing.md
+      - Support: project/support.md
+      - Security: project/security.md
+      - Governance: project/governance.md
+      - Code of conduct: project/conduct.md
+      - Changelog: project/changelog.md

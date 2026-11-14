@@ -4,9 +4,13 @@
 
 ## Supported versions
 
-No version has been released yet. The first release will be 0.0.87, in
-lockstep with the pain001 suite; from then on the latest release receives
-security fixes.
+| Version | Status | Security fixes |
+| :--- | :--- | :--- |
+| `0.0.88` | Current (first release) | Yes |
+
+0.0.88 is the first release, in lockstep with the pain001 suite. From
+then on the latest release receives security fixes; an older release is
+fixed by upgrading, since each step is `0.0.1`.
 
 ## Reporting a vulnerability
 
@@ -44,6 +48,7 @@ A vulnerability in the server itself belongs to
 - The API key is sent only as an `Authorization: Bearer` header. Use
   HTTPS (rustls, the default `tls` feature) for any server that is not
   on loopback.
-- No retries: a payment request is never sent twice by the client.
+- No `POST` is ever retried, so a payment request is never sent twice by
+  the client. Retries of `GET` calls are opt-in (`RetryPolicy`).
 - `cargo deny check` runs in CI and `make check`: RustSec advisories,
   licences and sources for every dependency, with no ignored advisories.

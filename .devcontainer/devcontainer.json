@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+// Opens with every tool `make check` needs (Dockerfile). `make check`
+// runs offline from the container; `make regression` also installs the
+// pinned pain001 server from PyPI into a temporary venv.
+{
+  "name": "pain001-sdk-rust",
+  "build": { "dockerfile": "Dockerfile" },
+  "remoteUser": "vscode",
+  "postCreateCommand": "cargo fetch --locked",
+  "customizations": {
+    "vscode": {
+      "extensions": ["rust-lang.rust-analyzer", "tamasfe.even-better-toml"]
+    }
+  }
+}

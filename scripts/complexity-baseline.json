@@ -1,0 +1,11 @@
+{
+  "ceilings": {
+    "cognitive": 15,
+    "cyclomatic": 10,
+    "file_lines": 500,
+    "halstead": 30,
+    "sloc": 60
+  },
+  "files": {},
+  "functions": {}
+}

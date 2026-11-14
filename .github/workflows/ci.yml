@@ -11,6 +11,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -33,7 +37,7 @@ jobs:
         run: cargo fmt --check
       - name: Clippy (default features)
         run: >-
-          cargo clippy --locked --all-targets --
+          cargo clippy --locked --all-targets --all-features --
           -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
       - name: Clippy (no default features)
         run: >-
@@ -60,10 +64,63 @@ jobs:
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
           toolchain: ${{ matrix.toolchain }}
-      - name: Build
-        run: cargo build --locked --all-targets
+      - name: Build (benches included)
+        run: cargo build --locked --all-targets --all-features
       - name: Unit tests (live tests report themselves skipped)
         run: cargo test --locked
+      - name: Benchmark smoke run (round trips skip without a server)
+        run: make bench-smoke
+
+  complexity:
+    name: Complexity ceilings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The version the baseline was measured with; bump both together.
+      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        with:
+          tool: rust-code-analysis-cli@0.0.25
+      - name: Cyclomatic, cognitive, Halstead and length per function
+        run: make complexity
+
+  release-checks:
+    name: Versions, package contents and API breakage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        with:
+          tool: cargo-semver-checks@0.51.0
+      - name: Every version restatement agrees with Cargo.toml
+        run: make versions
+      - name: The package ships no repository-only file
+        run: make package-check
+      - name: API breakage against the last crates.io release (none yet)
+        run: make api-check
+
+  coverage:
+    name: Coverage (100% lines and regions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68 # v2.88.1
+        with:
+          tool: cargo-llvm-cov@0.9.1
+      - name: Coverage gate
+        run: make coverage
 
   deny:
     name: Dependency policy (cargo-deny)
@@ -96,25 +153,29 @@ jobs:
           python -m venv "$RUNNER_TEMP/server"
           "$RUNNER_TEMP/server/bin/python" -m pip install --quiet --require-hashes \
             -r ci/server-requirements.txt
-      - name: Start pain001 serve
+      - name: Start pain001 serve with an API key
         run: |
+          # A throwaway key, so the api_key example sees the 401 without it.
+          key="ci-$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+          echo "::add-mask::$key"
+          echo "PAIN001_API_KEY=$key" >> "$GITHUB_ENV"
           cd "$RUNNER_TEMP"
-          nohup "$RUNNER_TEMP/server/bin/pain001" serve --host 127.0.0.1 --port 8000 \
-            > "$RUNNER_TEMP/server.log" 2>&1 &
+          PAIN001_API_KEY="$key" nohup "$RUNNER_TEMP/server/bin/pain001" serve \
+            --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/server.log" 2>&1 &
           for _ in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8000/api/v1/health; then exit 0; fi
             sleep 1
           done
           cat "$RUNNER_TEMP/server.log"
           exit 1
-      - name: Conformance and typed tests
+      - name: Conformance kit, typed tests and every example
         env:
           PAIN001_BASE_URL: http://127.0.0.1:8000
-        run: cargo test --locked --test conformance --test typed -- --nocapture
-      - name: Example
+        run: make conformance
+      - name: Benchmark smoke run, round trips included
         env:
           PAIN001_BASE_URL: http://127.0.0.1:8000
-        run: cargo run --locked --example basic -- "$RUNNER_TEMP/payments.xml"
+        run: make bench-smoke
       - name: Server log
         if: failure()
         run: cat "$RUNNER_TEMP/server.log"

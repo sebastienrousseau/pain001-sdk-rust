@@ -20,8 +20,10 @@ as well.
   regenerate `conformance/SHA256SUMS`.
 - **No payment data in logs.** Request and response bodies are never
   logged or printed; the API key never appears in `Debug` output.
-- **No retries by default**, and no new runtime dependency without a
-  reason in the commit body (licence and MSRV checked).
+- **No retries by default, and never of a `POST`**: `RetryPolicy` is
+  opt-in and retries `GET` calls only (`docs/adr/0004-opt-in-retries.md`).
+  No new runtime dependency without a reason in the commit body (licence
+  and MSRV checked).
 - **`#![forbid(unsafe_code)]`** stays.
 - **Complexity**: cyclomatic 10, cognitive 15, 60 lines per function,
   500 lines per file.
@@ -34,11 +36,14 @@ as well.
 
 ```sh
 make check
-PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
+make regression
 ```
 
-`make check` must pass before a push; the conformance run needs a live
-`pain001 serve` at the kit's version.
+`make check` must pass before a push (it includes 100% line and region
+coverage and the complexity ceilings); `make regression` installs the
+pinned server, starts it on loopback and adds the conformance kit, every
+example and the benchmark smoke run. DEVELOPMENT.md maps every CI job to
+its command.
 
 ## Leave alone
 

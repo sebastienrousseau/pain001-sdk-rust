@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# REUSE (https://reuse.software) licensing for the whole repository,
+# checked by `reuse lint` in CI. Every file is Copyright 2026 Sebastien
+# Rousseau, under Apache-2.0 OR MIT, as LICENSE, LICENSE-APACHE and
+# LICENSE-MIT say. Source files state their licence in an SPDX line of
+# their own; this file adds the copyright to them and both to the files
+# that cannot carry a comment (JSON, CSV, XML, lockfiles, the demo GIF,
+# fuzz seeds and the conformance kit, which is vendored from pain001 core
+# under the same grant).
+version = 1
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Sebastien Rousseau"
+SPDX-License-Identifier = "Apache-2.0 OR MIT"

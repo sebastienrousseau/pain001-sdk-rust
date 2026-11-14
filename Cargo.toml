@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 [package]
 name = "pain001-sdk"
-version = "0.0.87"
+version = "0.0.88"
 edition = "2021"
 rust-version = "1.85"
 description = "Typed blocking client for the pain001 REST API (ISO 20022 pain.001 and pain.008)"
@@ -11,9 +11,26 @@ homepage = "https://pain001.com"
 readme = "README.md"
 keywords = ["iso20022", "pain001", "payments", "sepa", "client"]
 categories = ["api-bindings", "finance"]
-publish = false
-# The README demo and its recipe stay in the repository, not the package.
-exclude = [".github/demo.gif", ".github/demo.tape"]
+# crates.io only, from the release workflow (docs/adr/0005).
+publish = ["crates-io"]
+# What the package ships: the library, its tests, examples and benches
+# with the kit they read, and the licences. The README demo, fuzz/,
+# docs/, scripts/ and CI files stay in the repository.
+include = [
+  "/Cargo.toml",
+  "/Cargo.lock",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/LICENSE",
+  "/LICENSE-APACHE",
+  "/LICENSE-MIT",
+  "/src/**/*.rs",
+  "/tests/**/*.rs",
+  "/examples/**/*.rs",
+  "/benches/**/*.rs",
+  "/benches/responses/*.json",
+  "/conformance/**",
+]
 
 [lib]
 name = "pain001_sdk"
@@ -23,6 +40,10 @@ default = ["tls"]
 # HTTPS through rustls (ring provider). Drop it with
 # `default-features = false` to talk to a loopback server over plain HTTP.
 tls = ["ureq/rustls"]
+# Exposes `pain001_sdk::fuzzing`, the request encoding and response
+# decoding without the network, for this repository's benches. Not public
+# API: hidden from the docs and free to change in any release.
+internals = []
 
 # cargo-fuzz builds with `--cfg fuzzing`, which compiles src/fuzzing.rs.
 [lints.rust]
@@ -35,4 +56,16 @@ thiserror = "2.0.21"
 ureq = { version = "3.5.1", default-features = false }
 
 [dev-dependencies]
+criterion = { version = "=0.7.0", default-features = false, features = ["cargo_bench_support"] }
 sha2 = "0.11.0"
+
+# Client-side cost, no network: `make bench` (needs the internals feature).
+[[bench]]
+name = "client"
+harness = false
+required-features = ["internals"]
+
+# Loopback round trips against PAIN001_BASE_URL; skipped without it.
+[[bench]]
+name = "roundtrip"
+harness = false

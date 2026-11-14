@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# pre-commit (https://pre-commit.com): `pre-commit install` once, then the
+# fast checks run on every commit. Local hooks only, so they use the same
+# tools and versions as `make check` (DEVELOPMENT.md lists them) and no
+# hook code is fetched from elsewhere. The slow gates (tests, coverage,
+# cargo deny) stay in `make check`.
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt --check
+        entry: cargo fmt --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: clippy
+        name: clippy (warnings denied, complexity lints)
+        entry: make lint
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: complexity
+        name: complexity ceilings
+        entry: python3 -I scripts/complexity-gate.py
+        language: system
+        types: [rust]
+        pass_filenames: false
+      - id: versions
+        name: version restatements agree
+        entry: scripts/verify-release-versions
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.(toml|lock)|fuzz/Cargo\.lock|CITATION\.cff|SECURITY\.md|SUPPORT\.md|README\.md|KEYS\.asc|CHANGELOG\.md|\.github/ISSUE_TEMPLATE/.*)$
+      - id: codespell
+        name: codespell
+        entry: codespell
+        language: system
+        pass_filenames: false
+      - id: markdownlint
+        name: markdownlint
+        entry: npx --yes markdownlint-cli2@0.23.3
+        language: system
+        types: [markdown]
+      - id: reuse
+        name: reuse lint
+        entry: reuse lint
+        language: system
+        pass_filenames: false

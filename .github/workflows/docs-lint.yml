@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0 OR MIT
 #
-# Markdown style on every push and pull request (markdownlint-cli2,
-# configured in .markdownlint-cli2.jsonc). Run it locally with
-# `npx markdownlint-cli2@0.23.3 "**/*.md"`.
+# Markdown style (markdownlint-cli2, configured in .markdownlint-cli2.jsonc),
+# spelling (codespell, .codespellrc) and REUSE licensing (REUSE.toml) on
+# every push and pull request. Locally: `make docs-lint`.
 name: Docs lint
 
 on:
@@ -10,6 +10,10 @@ on:
     branches: [main, "feat/*"]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -30,3 +34,24 @@ jobs:
 
       - name: Markdown style (markdownlint-cli2, configured in .markdownlint-cli2.jsonc)
         run: npx --yes markdownlint-cli2@0.23.3 "**/*.md"
+
+  codespell:
+    name: codespell
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Reads .codespellrc for the skip list and the allowed words.
+      - uses: codespell-project/actions-codespell@e3258cca84ce02b0bb36a3d41f2c18f719a0cc1a # v2.4.3
+
+  reuse:
+    name: REUSE (SPDX on every file)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: fsfe/reuse-action@676e2d560c9a403aa252096d99fcab3e1132b0f5 # v6.0.0

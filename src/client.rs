@@ -2,6 +2,7 @@
 //! The blocking client.
 
 use std::fmt;
+use std::thread;
 use std::time::Duration;
 
 use serde::de::DeserializeOwned;
@@ -10,6 +11,7 @@ use serde_json::{Map, Value};
 use ureq::http;
 
 use crate::error::{api_error, generate_error, generated, Error};
+use crate::retry::{self, RetryPolicy};
 use crate::types::{
     CheckRequest, CheckResponse, FaceInfo, FaceRequest, FaceResponse, FilePayload,
     GenerateResponse, HealthResponse, ValidationResponse,
@@ -18,6 +20,13 @@ use crate::types::{
 /// The timeout a new [`Client`] uses for a whole call (connect, send and
 /// read), until [`Client::timeout`] changes it.
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// This crate's version, from `Cargo.toml`.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// The `User-Agent` every request sends: `pain001-sdk-rust/<VERSION>`, so a
+/// server's access log shows which client and release made a call.
+pub const USER_AGENT: &str = concat!("pain001-sdk-rust/", env!("CARGO_PKG_VERSION"));
 
 /// Largest response body read, in bytes. A generated document for the
 /// largest accepted input (10 MiB) fits with room to spare.
@@ -32,7 +41,15 @@ pub struct Client {
     base_url: String,
     api_key: Option<String>,
     timeout: Duration,
+    retry: Option<RetryPolicy>,
     agent: ureq::Agent,
+}
+
+/// One answer: the status, the `Retry-After` header and the parsed body.
+pub(crate) struct Reply {
+    pub(crate) status: u16,
+    pub(crate) retry_after: Option<String>,
+    pub(crate) value: Value,
 }
 
 impl fmt::Debug for Client {
@@ -41,6 +58,7 @@ impl fmt::Debug for Client {
             .field("base_url", &self.base_url)
             .field("api_key", &self.api_key.as_ref().map(|_| "<redacted>"))
             .field("timeout", &self.timeout)
+            .field("retry", &self.retry)
             .finish()
     }
 }
@@ -54,6 +72,7 @@ impl Client {
             base_url,
             api_key: None,
             timeout: DEFAULT_TIMEOUT,
+            retry: None,
             agent: build_agent(DEFAULT_TIMEOUT),
         }
     }
@@ -69,6 +88,14 @@ impl Client {
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;
         self.agent = build_agent(timeout);
+        self
+    }
+
+    /// Retries `GET` calls under `policy`; without this, every call makes
+    /// exactly one attempt. `POST` calls are never retried. See
+    /// [`RetryPolicy`].
+    pub fn retry(mut self, policy: RetryPolicy) -> Self {
+        self.retry = Some(policy);
         self
     }
 
@@ -158,7 +185,7 @@ impl Client {
         version: Option<&str>,
         bindings: Option<&Map<String, Value>>,
     ) -> Result<FaceResponse, Error> {
-        let path = format!("/api/v1/faces/{}", encode_segment(face));
+        let path = face_path(face);
         let body = FaceRequest {
             xml,
             version,
@@ -176,11 +203,7 @@ impl Client {
         path: &str,
         body: Option<&Value>,
     ) -> Result<(u16, Value), Error> {
-        let bytes = body
-            .map(serde_json::to_vec)
-            .transpose()
-            .map_err(Error::Decode)?;
-        self.send(method, path, bytes)
+        self.exchange(method, path, body)
     }
 
     fn call<B, T>(&self, method: &str, path: &str, body: Option<&B>) -> Result<T, Error>
@@ -204,41 +227,79 @@ impl Client {
         B: Serialize + ?Sized,
         T: DeserializeOwned,
     {
-        let bytes = body
-            .map(serde_json::to_vec)
-            .transpose()
-            .map_err(Error::Decode)?;
-        let (status, value) = self.send(method, path, bytes)?;
+        let (status, value) = self.exchange(method, path, body)?;
         decode(status, value, on_error)
     }
 
+    /// Encodes `body` as JSON and sends the request.
+    fn exchange<B>(&self, method: &str, path: &str, body: Option<&B>) -> Result<(u16, Value), Error>
+    where
+        B: Serialize + ?Sized,
+    {
+        let bytes = encode(body)?;
+        self.send(method, path, bytes)
+    }
+
+    /// Sends the request, once, or under the retry policy for a `GET`.
     fn send(&self, method: &str, path: &str, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
+        let head = self.head(method, path)?;
+        let reply = match self.retry.filter(|_| head.method() == http::Method::GET) {
+            Some(policy) => retry::run(
+                &policy,
+                || self.once(head.clone(), body.clone()),
+                thread::sleep,
+            ),
+            None => self.once(head, body),
+        }?;
+        Ok((reply.status, reply.value))
+    }
+
+    /// The request line and headers every call shares; an invalid method
+    /// or URL fails here, before anything is sent.
+    fn head(&self, method: &str, path: &str) -> Result<http::Request<()>, Error> {
         let mut builder = http::Request::builder()
             .method(method)
             .uri(format!("{}{}", self.base_url, path))
-            .header("Accept", "application/json");
+            .header("Accept", "application/json")
+            .header("User-Agent", USER_AGENT);
         if let Some(key) = &self.api_key {
             builder = builder.header("Authorization", format!("Bearer {key}"));
         }
+        builder.body(()).map_err(Error::transport)
+    }
+
+    /// Sends `head` once, with `body` as JSON when there is one, and reads
+    /// the answer.
+    fn once(&self, head: http::Request<()>, body: Option<Vec<u8>>) -> Result<Reply, Error> {
         let result = match body {
             Some(bytes) => {
-                let request = builder
-                    .header("Content-Type", "application/json")
-                    .body(bytes)
-                    .map_err(Error::transport)?;
-                self.agent.run(request)
+                let (mut parts, ()) = head.into_parts();
+                parts.headers.insert(
+                    http::header::CONTENT_TYPE,
+                    http::HeaderValue::from_static("application/json"),
+                );
+                self.agent.run(http::Request::from_parts(parts, bytes))
             }
-            None => self.agent.run(builder.body(()).map_err(Error::transport)?),
+            None => self.agent.run(head),
         };
         let mut response = result.map_err(Error::transport)?;
         let status = response.status().as_u16();
+        let retry_after = response
+            .headers()
+            .get(http::header::RETRY_AFTER)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
         let text = response
             .body_mut()
             .with_config()
             .limit(BODY_LIMIT)
             .read_to_string()
             .map_err(Error::transport)?;
-        Ok((status, parse_body(&text)))
+        Ok(Reply {
+            status,
+            retry_after,
+            value: parse_body(&text),
+        })
     }
 }
 
@@ -265,6 +326,22 @@ where
         return Err(on_error(status, value));
     }
     serde_json::from_value(value).map_err(Error::Decode)
+}
+
+/// A request body as JSON bytes; a body that cannot be encoded is
+/// [`Error::Decode`].
+pub(crate) fn encode<B>(body: Option<&B>) -> Result<Option<Vec<u8>>, Error>
+where
+    B: Serialize + ?Sized,
+{
+    body.map(serde_json::to_vec)
+        .transpose()
+        .map_err(Error::Decode)
+}
+
+/// The path of `POST /api/v1/faces/{face}`, with `face` percent-encoded.
+pub(crate) fn face_path(face: &str) -> String {
+    format!("/api/v1/faces/{}", encode_segment(face))
 }
 
 /// Parses a response body: empty is `null`, non-JSON is a JSON string.

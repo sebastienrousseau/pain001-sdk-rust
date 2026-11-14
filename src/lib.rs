@@ -24,25 +24,29 @@
 //! [`Error::Refused`] (HTTP `422`), carrying the typed findings; any other
 //! non-2xx response becomes [`Error::Api`], carrying the HTTP status and
 //! the server's `detail` (a string, or an array for a `422`). The client
-//! never retries and never logs request bodies, which hold payment data.
+//! never logs request bodies, which hold payment data, and retries nothing
+//! unless given a [`RetryPolicy`], which retries `GET` calls only.
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
 mod client;
 mod error;
+mod retry;
 mod types;
 
 #[cfg(test)]
 mod stub;
 
-/// The decoding path without the network, for `fuzz/`. Not public API:
-/// it exists only under `cfg(fuzzing)` and in unit tests.
-#[cfg(any(fuzzing, test))]
+/// The encoding and decoding paths without the network, for `fuzz/` and
+/// `benches/`. Not public API: it exists only under `cfg(fuzzing)`, with
+/// the `internals` feature, and in unit tests.
+#[cfg(any(fuzzing, test, feature = "internals"))]
 #[doc(hidden)]
 pub mod fuzzing;
 
-pub use client::{Client, DEFAULT_TIMEOUT};
+pub use client::{Client, DEFAULT_TIMEOUT, USER_AGENT, VERSION};
 pub use error::Error;
+pub use retry::RetryPolicy;
 pub use types::{
     CheckFinding, CheckResponse, FaceInfo, FaceResponse, GenerateResponse, HealthResponse,
     LossReport, MessageType, RequestError, RowError, ValidationResponse,
