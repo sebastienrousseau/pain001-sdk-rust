@@ -29,7 +29,7 @@
 
 **Getting started**
 
-- [Install](#install): a git dependency until the crate is on crates.io
+- [Install](#install): from crates.io, or the git repository
 - [Requirements](#requirements): toolchain floor, platforms
 - [Quick Start](#quick-start): generate a pain.001 file from a CSV in one call
 
@@ -63,12 +63,13 @@
 
 ```toml
 [dependencies]
-pain001-sdk = { git = "https://github.com/sebastienrousseau/pain001-sdk-rust" }
+pain001-sdk = "0.0.88"
 ```
 
-The crate is not yet on crates.io (`publish = false` in `Cargo.toml`);
-depend on the git repository until it is. It needs a running pain001
-server, which is a Python package:
+0.0.88 is the first release published to crates.io. Before it is out,
+depend on the repository instead:
+`pain001-sdk = { git = "https://github.com/sebastienrousseau/pain001-sdk-rust" }`.
+The client needs a running pain001 server, which is a Python package:
 
 ```sh
 pip install 'pain001[api]==0.0.87'

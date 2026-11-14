@@ -6,9 +6,9 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
+.PHONY: versions package-check api-check check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
 
-check: fmt-check lint build test coverage doc deny
+check: fmt-check lint build test coverage doc deny versions package-check
 
 fmt:
 	$(CARGO) fmt
@@ -39,6 +39,18 @@ doc:
 # Needs cargo-deny (`cargo install cargo-deny --locked`).
 deny:
 	$(CARGO) deny --locked check
+
+# Every restatement of the version agrees with Cargo.toml.
+versions:
+	scripts/verify-release-versions
+
+# The crate package ships no demo, fuzz, docs, scripts or CI files.
+package-check:
+	scripts/check-package.sh
+
+# cargo-semver-checks against the newest crates.io release (none yet).
+api-check:
+	scripts/api-check.sh
 
 # The kit, the typed tests and every example against a live server:
 #   PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance

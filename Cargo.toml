@@ -12,8 +12,24 @@ readme = "README.md"
 keywords = ["iso20022", "pain001", "payments", "sepa", "client"]
 categories = ["api-bindings", "finance"]
 publish = false
-# The README demo and its recipe stay in the repository, not the package.
-exclude = [".github/demo.gif", ".github/demo.tape"]
+# What the package ships: the library, its tests, examples and benches
+# with the kit they read, and the licences. The README demo, fuzz/,
+# docs/, scripts/ and CI files stay in the repository.
+include = [
+  "/Cargo.toml",
+  "/Cargo.lock",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/LICENSE",
+  "/LICENSE-APACHE",
+  "/LICENSE-MIT",
+  "/src/**/*.rs",
+  "/tests/**/*.rs",
+  "/examples/**/*.rs",
+  "/benches/**/*.rs",
+  "/benches/responses/*.json",
+  "/conformance/**",
+]
 
 [lib]
 name = "pain001_sdk"

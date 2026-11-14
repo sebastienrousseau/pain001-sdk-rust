@@ -24,6 +24,16 @@ first release will be 0.0.88.
 
 ### Added
 
+- `scripts/verify-release-versions` (`make versions`, part of
+  `make check` and CI): fails when a lockfile, `CITATION.cff`, the
+  `SECURITY.md` or `SUPPORT.md` table, the README install snippet, the
+  bug report form or the `KEYS.asc` example disagrees with `Cargo.toml`,
+  or, with `--tag`, when the tag names another version.
+- `scripts/check-package.sh` (`make package-check`) fails when the crate
+  package would ship a demo, fuzz, docs, scripts or CI file, and
+  `scripts/api-check.sh` (`make api-check`) runs cargo-semver-checks
+  against the newest crates.io release, a no-op until the first one.
+- `SUPPORT.md`: where to ask, the supported versions, what to expect.
 - `make regression` (`scripts/regression.sh`): installs the pinned
   server into a temporary venv unless `PAIN001_SERVER` names one, starts
   it on a free loopback port with a random API key, runs `make check`,
