@@ -144,7 +144,7 @@ match client.generate(&csv, "payments.csv", "pain.001.001.09", Some("uk-chaps"))
 This crate is one of the pain001 suite. pain001 has one engine, the
 Python server, and thin typed clients per language that all pass one
 shared conformance kit. The suite releases together at one version,
-core first; this crate's first release will be 0.0.87.
+core first; this crate's first release will be 0.0.88.
 
 | Component | Purpose | Use case |
 | :--- | :--- | :--- |

@@ -4,9 +4,13 @@
 
 ## Supported versions
 
-No version has been released yet. The first release will be 0.0.87, in
-lockstep with the pain001 suite; from then on the latest release receives
-security fixes.
+| Version | Status | Security fixes |
+| :--- | :--- | :--- |
+| `0.0.88` | Current (first release) | Yes |
+
+0.0.88 is the first release, in lockstep with the pain001 suite. From
+then on the latest release receives security fixes; an older release is
+fixed by upgrading, since each step is `0.0.1`.
 
 ## Reporting a vulnerability
 

@@ -5,12 +5,16 @@
 All notable changes to this project are documented in this file. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
-first release will be 0.0.86.
+first release will be 0.0.88.
 
 ## [Unreleased]
 
 ### Changed
 
+- The version moves to 0.0.88 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` support table, the bug report form
+  and the `KEYS.asc` example. No 0.0.87 was tagged, so 0.0.88 is this
+  crate's first release, at the suite's version.
 - The test-only `sha2` dependency moves to 0.11.0 (was 0.10.9). The
   kit checksum test hex-encodes the digest itself, since 0.11's output
   type has no `LowerHex`. 0.11.0 is the newest release within the 1.85
