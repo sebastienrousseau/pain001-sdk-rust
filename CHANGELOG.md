@@ -24,6 +24,11 @@ first release will be 0.0.88.
 
 ### Added
 
+- `make regression` (`scripts/regression.sh`): installs the pinned
+  server into a temporary venv unless `PAIN001_SERVER` names one, starts
+  it on a free loopback port with a random API key, runs `make check`,
+  `make conformance` (kit, typed tests, every example) and the benchmark
+  smoke run, and stops the server and removes the venv even on failure.
 - Benchmarks of every public method with criterion 0.7 (a
   dev-dependency; 0.8 needs Rust 1.86, above the floor):
   `benches/client.rs` times the client-side cost with no network,

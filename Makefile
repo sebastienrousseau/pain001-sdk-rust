@@ -6,7 +6,7 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke demo clean
+.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
 
 check: fmt-check lint build test coverage doc deny
 
@@ -70,6 +70,12 @@ bench:
 # Each benchmark once, unmeasured: keeps them compiling and running.
 bench-smoke:
 	$(CARGO) bench --locked --all-features -- --test
+
+# Everything, against a server it starts and stops: scripts/regression.sh.
+# Installs the pinned server into a temporary venv unless PAIN001_SERVER
+# names one; REGRESSION_PORT picks the loopback port.
+regression:
+	scripts/regression.sh
 
 # Renders .github/demo.gif from .github/demo.tape (needs vhs). The tape
 # starts the pain001 server on 127.0.0.1: set PAIN001_SERVER to its
