@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  No demo GIF: this is a library with no command line of its own, and its output is the pain001 server's. <code>cargo run --example basic</code> shows the same flow in a terminal.
+  <img src="https://raw.githubusercontent.com/sebastienrousseau/pain001-sdk-rust/main/.github/demo.gif" alt="cargo run --example basic against a local pain001 server: the SDK reads the server health, generates a pain.001.001.09 file from the conformance kit's synthetic CSV, checks it, and the file's first lines are shown" width="100%" />
 </p>
 
 ---
