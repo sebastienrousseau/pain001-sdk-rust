@@ -56,7 +56,7 @@ thiserror = "2.0.21"
 ureq = { version = "3.5.1", default-features = false }
 
 [dev-dependencies]
-criterion = { version = "=0.7.0", default-features = false, features = ["cargo_bench_support"] }
+criterion = { version = "=0.8.2", default-features = false, features = ["cargo_bench_support"] }
 sha2 = "0.11.0"
 
 # Client-side cost, no network: `make bench` (needs the internals feature).
