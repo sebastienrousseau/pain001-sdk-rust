@@ -33,27 +33,43 @@ pub(crate) fn serve(status: u16, body: &str) -> (String, Receiver<Seen>) {
 
 /// The bytes of a response with `status` and `body`.
 pub(crate) fn response(status: u16, body: &str) -> Vec<u8> {
-    format!(
-        "HTTP/1.1 {status} Stub\r\nContent-Type: application/json\r\n\
-         Content-Length: {}\r\nConnection: close\r\n\r\n{body}",
+    response_with(status, &[], body)
+}
+
+/// The bytes of a response with `status`, extra `headers` and `body`.
+pub(crate) fn response_with(status: u16, headers: &[(&str, &str)], body: &str) -> Vec<u8> {
+    let mut head = format!("HTTP/1.1 {status} Stub\r\nContent-Type: application/json\r\n");
+    for (name, value) in headers {
+        head.push_str(&format!("{name}: {value}\r\n"));
+    }
+    head.push_str(&format!(
+        "Content-Length: {}\r\nConnection: close\r\n\r\n{body}",
         body.len()
-    )
-    .into_bytes()
+    ));
+    head.into_bytes()
 }
 
 /// Starts a stub that writes `response` verbatim, whatever it is, and
 /// closes the connection.
 pub(crate) fn serve_raw(response: Vec<u8>) -> (String, Receiver<Seen>) {
+    serve_sequence(vec![response])
+}
+
+/// Starts a stub that answers one connection after another with each of
+/// `responses` in turn, closing each; the receiver gets every request.
+pub(crate) fn serve_sequence(responses: Vec<Vec<u8>>) -> (String, Receiver<Seen>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let url = format!("http://{}", listener.local_addr().expect("local addr"));
     let (sender, receiver) = mpsc::channel();
     thread::spawn(move || {
-        let (stream, _) = listener.accept().expect("accept");
-        let mut reader = BufReader::new(stream.try_clone().expect("clone stream"));
-        let seen = read_request(&mut reader);
-        let mut stream = stream;
-        stream.write_all(&response).expect("write response");
-        let _ = sender.send(seen);
+        for response in responses {
+            let (stream, _) = listener.accept().expect("accept");
+            let mut reader = BufReader::new(stream.try_clone().expect("clone stream"));
+            let seen = read_request(&mut reader);
+            let mut stream = stream;
+            stream.write_all(&response).expect("write response");
+            let _ = sender.send(seen);
+        }
     });
     (url, receiver)
 }

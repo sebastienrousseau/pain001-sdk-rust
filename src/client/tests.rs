@@ -2,7 +2,8 @@
 //! Client unit tests against the loopback stub; no pain001 server needed.
 
 use super::*;
-use crate::stub::{response, serve, serve_raw};
+use crate::retry::RetryPolicy;
+use crate::stub::{response, response_with, serve, serve_raw, serve_sequence};
 use crate::MessageType;
 use serde_json::json;
 use std::time::Duration;
@@ -275,4 +276,108 @@ fn a_body_that_cannot_be_encoded_is_a_decode_error_and_is_not_sent() {
         .expect("sent");
     assert_eq!(status, 200);
     assert_eq!(seen.recv().expect("request").body, "true");
+}
+
+/// How many requests the stub saw, waiting up to a second for each, so a
+/// missing retry fails the test instead of hanging it.
+fn received(seen: &std::sync::mpsc::Receiver<crate::stub::Seen>) -> usize {
+    std::iter::from_fn(|| seen.recv_timeout(Duration::from_secs(1)).ok()).count()
+}
+
+/// A policy fast enough for tests: two retries, 1 ms apart at most.
+fn quick_retries() -> RetryPolicy {
+    RetryPolicy::new()
+        .with_base_delay(Duration::from_millis(1))
+        .with_max_delay(Duration::from_millis(2))
+}
+
+const HEALTHY: &str = r#"{"status":"healthy","version":"0.0.88","message":"ok"}"#;
+
+#[test]
+fn a_get_is_retried_after_a_503_and_a_429() {
+    let (url, seen) = serve_sequence(vec![
+        response(503, r#"{"detail":"restarting"}"#),
+        response_with(429, &[("Retry-After", "0")], ""),
+        response(200, HEALTHY),
+    ]);
+    let health = Client::new(url)
+        .retry(quick_retries())
+        .health()
+        .expect("third attempt");
+    assert_eq!(health.status, "healthy");
+    assert_eq!(received(&seen), 3);
+}
+
+#[test]
+fn the_last_answer_is_returned_when_the_attempts_run_out() {
+    let (url, seen) = serve_sequence(vec![response(503, "{}"), response(503, "{}")]);
+    let error = Client::new(url)
+        .retry(quick_retries().with_max_attempts(2))
+        .faces()
+        .expect_err("503");
+    assert_eq!(error.status(), Some(503));
+    assert_eq!(received(&seen), 2);
+}
+
+#[test]
+fn a_retry_after_beyond_the_maximum_delay_ends_the_retries() {
+    let (url, seen) = serve_sequence(vec![
+        response_with(503, &[("Retry-After", "120")], "{}"),
+        response(200, HEALTHY),
+    ]);
+    let error = Client::new(url)
+        .retry(quick_retries())
+        .health()
+        .expect_err("not retried");
+    assert_eq!(error.status(), Some(503));
+    seen.recv().expect("first request");
+    assert!(seen.try_recv().is_err(), "a second request was sent");
+}
+
+#[test]
+fn a_post_is_never_retried() {
+    let (url, seen) = serve_sequence(vec![response(503, "{}"), response(200, "{}")]);
+    let client = Client::new(url).retry(quick_retries());
+    let error = client.check("<x/>", None, None).expect_err("not retried");
+    assert_eq!(error.status(), Some(503));
+    let (status, _) = client
+        .request("POST", "/api/v1/check", None)
+        .expect("second request");
+    assert_eq!(status, 200, "the first call made one attempt only");
+    assert_eq!(received(&seen), 2);
+}
+
+#[test]
+fn request_retries_a_get_and_errors_are_not_retried() {
+    let (url, seen) = serve_sequence(vec![
+        response(503, "{}"),
+        response(200, "{}"),
+        response(404, "{}"),
+    ]);
+    let client = Client::new(url).retry(quick_retries());
+    let (status, _) = client.request("GET", "/x", None).expect("retried");
+    assert_eq!(status, 200);
+    let (status, _) = client.request("GET", "/x", None).expect("404");
+    assert_eq!(status, 404, "a 404 is the answer, not a reason to retry");
+    assert_eq!(received(&seen), 3);
+}
+
+#[test]
+fn a_refused_connection_is_retried_then_returned() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let url = format!("http://{}", listener.local_addr().expect("addr"));
+    drop(listener);
+    let client = Client::new(url).retry(quick_retries());
+    assert!(format!("{client:?}").contains("max_attempts: 3"));
+    let error = client.health().expect_err("refused");
+    assert!(matches!(error, Error::Transport(_)), "{error:?}");
+}
+
+#[test]
+fn without_a_policy_a_503_is_returned_at_once() {
+    let (url, seen) = serve_sequence(vec![response(503, "{}"), response(200, HEALTHY)]);
+    let error = Client::new(url).health().expect_err("503");
+    assert_eq!(error.status(), Some(503));
+    seen.recv().expect("first request");
+    assert!(seen.try_recv().is_err(), "a second request was sent");
 }

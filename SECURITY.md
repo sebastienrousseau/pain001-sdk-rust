@@ -48,6 +48,7 @@ A vulnerability in the server itself belongs to
 - The API key is sent only as an `Authorization: Bearer` header. Use
   HTTPS (rustls, the default `tls` feature) for any server that is not
   on loopback.
-- No retries: a payment request is never sent twice by the client.
+- No `POST` is ever retried, so a payment request is never sent twice by
+  the client. Retries of `GET` calls are opt-in (`RetryPolicy`).
 - `cargo deny check` runs in CI and `make check`: RustSec advisories,
   licences and sources for every dependency, with no ignored advisories.

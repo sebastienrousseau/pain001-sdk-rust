@@ -20,8 +20,10 @@ as well.
   regenerate `conformance/SHA256SUMS`.
 - **No payment data in logs.** Request and response bodies are never
   logged or printed; the API key never appears in `Debug` output.
-- **No retries by default**, and no new runtime dependency without a
-  reason in the commit body (licence and MSRV checked).
+- **No retries by default, and never of a `POST`**: `RetryPolicy` is
+  opt-in and retries `GET` calls only (`docs/adr/0004-opt-in-retries.md`).
+  No new runtime dependency without a reason in the commit body (licence
+  and MSRV checked).
 - **`#![forbid(unsafe_code)]`** stays.
 - **Complexity**: cyclomatic 10, cognitive 15, 60 lines per function,
   500 lines per file.

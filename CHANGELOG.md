@@ -24,6 +24,14 @@ first release will be 0.0.88.
 
 ### Added
 
+- `RetryPolicy`, opt-in through `Client::retry`: `GET` calls (`health`,
+  `faces`, `request` with `"GET"`) are tried again after a transport
+  error or an HTTP `429` or `503`, up to 3 attempts by default, with
+  exponential backoff and jitter (200 ms base, 5 s maximum). A
+  `Retry-After` in seconds or as an HTTP date is waited exactly, and one
+  longer than the maximum ends the retries. `POST` calls are never
+  retried. Without a policy every call makes one attempt, as before.
+  See `docs/adr/0004-opt-in-retries.md`.
 - Every request sends `User-Agent: pain001-sdk-rust/<version>`, so a
   server's access log shows which client and release made a call; it
   used to be ureq's default. `VERSION` and `USER_AGENT` are exported,

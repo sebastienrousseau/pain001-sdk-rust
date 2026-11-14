@@ -2,6 +2,7 @@
 //! The blocking client.
 
 use std::fmt;
+use std::thread;
 use std::time::Duration;
 
 use serde::de::DeserializeOwned;
@@ -10,6 +11,7 @@ use serde_json::{Map, Value};
 use ureq::http;
 
 use crate::error::{api_error, generate_error, generated, Error};
+use crate::retry::{self, RetryPolicy};
 use crate::types::{
     CheckRequest, CheckResponse, FaceInfo, FaceRequest, FaceResponse, FilePayload,
     GenerateResponse, HealthResponse, ValidationResponse,
@@ -39,7 +41,15 @@ pub struct Client {
     base_url: String,
     api_key: Option<String>,
     timeout: Duration,
+    retry: Option<RetryPolicy>,
     agent: ureq::Agent,
+}
+
+/// One answer: the status, the `Retry-After` header and the parsed body.
+pub(crate) struct Reply {
+    pub(crate) status: u16,
+    pub(crate) retry_after: Option<String>,
+    pub(crate) value: Value,
 }
 
 impl fmt::Debug for Client {
@@ -48,6 +58,7 @@ impl fmt::Debug for Client {
             .field("base_url", &self.base_url)
             .field("api_key", &self.api_key.as_ref().map(|_| "<redacted>"))
             .field("timeout", &self.timeout)
+            .field("retry", &self.retry)
             .finish()
     }
 }
@@ -61,6 +72,7 @@ impl Client {
             base_url,
             api_key: None,
             timeout: DEFAULT_TIMEOUT,
+            retry: None,
             agent: build_agent(DEFAULT_TIMEOUT),
         }
     }
@@ -76,6 +88,14 @@ impl Client {
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;
         self.agent = build_agent(timeout);
+        self
+    }
+
+    /// Retries `GET` calls under `policy`; without this, every call makes
+    /// exactly one attempt. `POST` calls are never retried. See
+    /// [`RetryPolicy`].
+    pub fn retry(mut self, policy: RetryPolicy) -> Self {
+        self.retry = Some(policy);
         self
     }
 
@@ -223,9 +243,18 @@ impl Client {
         self.send(method, path, bytes)
     }
 
+    /// Sends the request, once, or under the retry policy for a `GET`.
     fn send(&self, method: &str, path: &str, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
         let head = self.head(method, path)?;
-        self.once(head, body)
+        let reply = match self.retry.filter(|_| head.method() == http::Method::GET) {
+            Some(policy) => retry::run(
+                &policy,
+                || self.once(head.clone(), body.clone()),
+                thread::sleep,
+            ),
+            None => self.once(head, body),
+        }?;
+        Ok((reply.status, reply.value))
     }
 
     /// The request line and headers every call shares; an invalid method
@@ -243,8 +272,8 @@ impl Client {
     }
 
     /// Sends `head` once, with `body` as JSON when there is one, and reads
-    /// the status and the parsed body.
-    fn once(&self, head: http::Request<()>, body: Option<Vec<u8>>) -> Result<(u16, Value), Error> {
+    /// the answer.
+    fn once(&self, head: http::Request<()>, body: Option<Vec<u8>>) -> Result<Reply, Error> {
         let result = match body {
             Some(bytes) => {
                 let (mut parts, ()) = head.into_parts();
@@ -258,13 +287,22 @@ impl Client {
         };
         let mut response = result.map_err(Error::transport)?;
         let status = response.status().as_u16();
+        let retry_after = response
+            .headers()
+            .get(http::header::RETRY_AFTER)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned);
         let text = response
             .body_mut()
             .with_config()
             .limit(BODY_LIMIT)
             .read_to_string()
             .map_err(Error::transport)?;
-        Ok((status, parse_body(&text)))
+        Ok(Reply {
+            status,
+            retry_after,
+            value: parse_body(&text),
+        })
     }
 }
 
