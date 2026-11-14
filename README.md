@@ -12,8 +12,8 @@
 
 <p align="center">
   <a href="https://github.com/sebastienrousseau/pain001-sdk-rust/actions"><img src="https://img.shields.io/github/actions/workflow/status/sebastienrousseau/pain001-sdk-rust/ci.yml?style=for-the-badge&logo=github" alt="Build" height="28" /></a>
-  <a href="#install"><img src="https://img.shields.io/badge/crates.io-not%20yet%20published-lightgrey?style=for-the-badge&color=fc8d62&logo=rust" alt="Registry" height="28" /></a>
-  <a href="#documentation"><img src="https://img.shields.io/badge/docs-cargo%20doc-blue?style=for-the-badge&labelColor=555555&logo=docsdotrs" alt="Docs" height="28" /></a>
+  <a href="https://crates.io/crates/pain001-sdk"><img src="https://img.shields.io/crates/v/pain001-sdk.svg?style=for-the-badge&color=fc8d62&logo=rust" alt="Registry" height="28" /></a>
+  <a href="https://docs.rs/pain001-sdk"><img src="https://img.shields.io/docsrs/pain001-sdk?style=for-the-badge&labelColor=555555&logo=docsdotrs" alt="Docs" height="28" /></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/pain001-sdk-rust"><img src="https://img.shields.io/ossf-scorecard/github.com/sebastienrousseau/pain001-sdk-rust?style=for-the-badge&label=OpenSSF%20Scorecard&logo=openssf" alt="OpenSSF Scorecard" height="28" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0%20OR%20MIT-blue.svg?style=for-the-badge" alt="License: Apache-2.0 OR MIT" height="28" /></a>
   <a href="https://github.com/sebastienrousseau/pain001-sdk-rust/blob/main/docs/POLICIES.md"><img src="https://img.shields.io/badge/Rust-1.85%2B-93450a.svg?style=for-the-badge&logo=rust" alt="Rust 1.85 or newer" height="28" /></a>
@@ -35,13 +35,13 @@
 
 **The pain001-sdk-rust ecosystem**
 
-- [The pain001-sdk-rust ecosystem](#the-pain001-sdk-rust-ecosystem): the pain001 core, its servers, loaders and SDKs
+- [The pain001-sdk-rust ecosystem](#the-pain001-sdk-rust-ecosystem): the pain001 core, its servers, loaders, tools and SDKs
 
 **Library reference**
 
 - [Capabilities at a glance](#capabilities-at-a-glance): the current surface by theme
-- [Ecosystem comparison](#ecosystem-comparison): short matrix
-- [Benchmarks](#benchmarks): none published, and why
+- [Ecosystem comparison](#ecosystem-comparison): short matrix; full table at [`docs/COMPARISON.md`](docs/COMPARISON.md)
+- [Benchmarks](#benchmarks): headline numbers; full table at [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
 - [Features](#features): module-level capability list
 - [Configuration](#configuration): core options
 - [Examples](#examples): runnable example index
@@ -49,7 +49,7 @@
 **Operational**
 
 - [When not to use pain001-sdk-rust](#when-not-to-use-pain001-sdk-rust): limitations
-- [Development](#development): make targets, CI
+- [Development](#development): make targets, fuzzing, CI
 - [Security](#security): guarantees and compliance
 - [Documentation](#documentation): all reference docs
 - [Stability guarantees](#stability-guarantees): SemVer axis, output stability, minimum toolchain discipline
@@ -78,18 +78,20 @@ pain001 serve --host 127.0.0.1 --port 8000
 
 HTTPS uses rustls through the default `tls` feature. A client that only
 talks to a loopback server over plain HTTP can drop it with
-`default-features = false`.
+`default-features = false`. `cargo add pain001-sdk` does the same as the
+snippet above.
 
 ---
 
 ## Requirements
 
-- Rust 1.85 or newer (`rust-version` in `Cargo.toml`), tested in CI on
-  stable and on 1.85.0 on Linux ([toolchain policy](docs/POLICIES.md)).
+- Rust 1.85 or newer (`rust-version` in `Cargo.toml`), built and tested
+  in CI on 1.85.0 and stable on Linux ([toolchain policy](docs/POLICIES.md)).
 - A pain001 server to talk to. CI runs the conformance kit in
-  `conformance/` against pain001 0.0.87, pinned in
+  `conformance/` against pain001 0.0.87, the latest release, pinned in
   `ci/server-requirements.in`.
-- No async runtime: every call blocks the calling thread.
+- No async runtime: every call blocks the calling thread. Any platform
+  ureq and rustls support; CI runs on Linux, development happens on macOS.
 
 ---
 
@@ -144,8 +146,8 @@ match client.generate(&csv, "payments.csv", "pain.001.001.09", Some("uk-chaps"))
 
 This crate is one of the pain001 suite. pain001 has one engine, the
 Python server, and thin typed clients per language that all pass one
-shared conformance kit. The suite releases together at one version,
-core first; this crate's first release will be 0.0.88.
+shared conformance kit. The suite releases together at one version, core
+first; this crate's first release is 0.0.88.
 
 | Component | Purpose | Use case |
 | :--- | :--- | :--- |
@@ -154,6 +156,11 @@ core first; this crate's first release will be 0.0.88.
 | [`pain001-lsp`][lsp] | Language Server Protocol server | Editor diagnostics for payment data |
 | [`pain001-loader-mt101`][mt101] | SWIFT MT101 loader plugin | Convert supported MT101 inputs |
 | [`pain001-loader-xlsx`][xlsx] | Excel loader plugin | Read `.xlsx` and `.xlsm` payment inputs |
+| [`pain001-mockbank`][mockbank] | Synthetic SFTP bank-response test service | Generate pain.002 replies in integration tests |
+| [`pain001-plugin-template`][template] | Cookiecutter plugin scaffold | Develop an external loader or validator |
+| [`pain001-fast`][fast] | Experimental native validation extension | Optional IBAN, BIC and character-set helpers |
+| [`pain001.com`][site] | Website and browser demo | Browse documentation and try the library |
+| [`pain001-sdk-go`][go], [`-java`][java], [`-dotnet`][dotnet], [`-cpp`][cpp] | Typed clients in other languages | Call pain001 from Go, Java, .NET or C++ |
 | **`pain001-sdk-rust`** | Typed Rust client for the REST API | Call pain001 from a Rust service |
 
 ---
@@ -164,67 +171,81 @@ core first; this crate's first release will be 0.0.88.
 | :--- | :--- | :--- |
 | Health | `health()`: `GET /api/v1/health` | Supported |
 | Validation | `validate()`: a CSV, JSON or JSONL file's rows, with optional scheme rulebooks | Supported |
-| Generation | `generate()`: pain.001 and pain.008 XML from a file's text | Supported |
+| Generation | `generate()`: pain.001 and pain.008 XML from a file's text; a refusal is a typed `Error::Refused` | Supported |
 | Checking | `check()`: the XSD, MDR, scheme and Schematron ladder on an existing document | Supported |
 | Faces | `faces()` and `project_face()`: project a pain.001 into Berlin Group, ISO 2018 names or UK Open Banking, with a loss report | Supported |
 | Low level | `request()`: any method and path, returning the status and parsed JSON | Supported |
-| Errors | `Error::Api` with status and `detail`; `Transport`; `Decode` | Supported |
+| Errors | `Error::Api`, `Refused`, `Transport`, `Decode` | Supported |
+| Retries | `RetryPolicy`: opt-in retries of `GET` calls on transport errors, 429 and 503, honouring `Retry-After` | Supported, off by default |
 | Async jobs | `POST /api/v1/generate` with server-side file paths and job polling | Not wrapped; use `request()` |
-| Retries | Automatic retry on failure | Not provided, by design |
 
 ---
 
 ## Ecosystem comparison
 
-The same REST API can be called with any HTTP client. This crate adds
-typed requests and responses, error mapping, and proof against the
-suite's conformance kit. Sibling SDKs for Go, Java, .NET and C++ run the
-same kit.
+The suite's five SDKs share one method surface and run core's conformance kit against a live `pain001 serve` in CI. Core's CI also generates a Python client from the OpenAPI document, which it imports but does not run against the kit.
 
-| Project | Typed responses | Runs the conformance kit | Async runtime |
-| :--- | :---: | :---: | :---: |
-| **pain001-sdk-rust** | Yes | Yes, in CI | None (blocking) |
-| Raw HTTP with any Rust client | No | No | Your choice |
+| Project | Language (minimum) | Conformance kit in CI | Types | Runtime dependencies | Call model |
+| :--- | :---: | :---: | :---: | :--- | :--- |
+| pain001-sdk-go | Go 1.26 | Yes | Hand-written | None (standard library) | Blocking, `context.Context` |
+| pain001-sdk-java | Java 17 | Yes | Hand-written | Jackson databind | Blocking |
+| **pain001-sdk-rust** | **Rust 1.85** | **Yes** | **Hand-written (serde)** | **ureq, serde, serde_json, thiserror** | **Blocking** |
+| pain001-sdk-dotnet | .NET 10 | Yes | Hand-written | None | async/await, `CancellationToken` |
+| pain001-sdk-cpp | C++17 | Yes | Hand-written | libcurl, nlohmann/json | Blocking |
+| openapi-generator client (core CI artifact) | Python | No, CI imports it only | Generated | Generator's | Blocking |
+| Raw HTTP | Any | No | None | Your HTTP client | Yours |
+
+See [`docs/COMPARISON.md`](docs/COMPARISON.md) for the evidence and complete matrix.
 
 ---
 
 ## Benchmarks
 
-None published. Every call's time is the network round trip plus the
-pain001 server's own work; the client adds JSON encoding and decoding,
-which is not where a payment file's time goes.
+Criterion benchmarks cover every public method: the client-side cost
+with no network (encoding each request body, decoding each response) and
+a loopback round trip against `pain001 serve`. The client's work is
+microseconds; the server's is milliseconds. Medians from the first of two
+runs on a busy laptop (load average 25 to 63), so read them as orders of
+magnitude:
 
 | Scenario | Result | Environment |
 | :--- | ---: | :--- |
-| Not measured | n/a | n/a |
+| Decode a `generate` response (4,466 bytes, XML inside) | 12.0 µs | Apple A18 Pro, macOS 27.2, rustc 1.99.0 |
+| Encode a `check` request (the kit's pain.001) | 10.0 µs | same |
+| Round trip, `health` | 0.44 ms | same, pain001 0.0.87 on loopback |
+| Round trip, `generate` (5 rows) | 16.4 ms | same |
+| Round trip, `project_face` | 24.2 ms | same |
+
+See [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) for methodology and full results.
 
 ---
 
 ## Features
 
 - **`Client`** (`src/client.rs`): `Client::new(base_url)` with
-  `.api_key(..)` (sent as `Authorization: Bearer <key>`) and
-  `.timeout(..)` (default 30 seconds for the whole call). One method per
-  endpoint, plus `request()`. Clones share the connection pool; `Debug`
-  output redacts the API key.
+  `.api_key(..)` (sent as `Authorization: Bearer <key>`), `.timeout(..)`
+  (default 30 seconds per attempt) and `.retry(RetryPolicy)`. One method
+  per endpoint, plus `request()`. Every request sends
+  `User-Agent: pain001-sdk-rust/<version>`. Clones share the connection
+  pool; `Debug` output redacts the API key.
 - **Types** (`src/types.rs`): `HealthResponse`, `ValidationResponse`,
   `GenerateResponse`, `CheckResponse` with `CheckFinding`, `FaceInfo`,
-  `FaceResponse` with `LossReport`, and `RowError` (`field`, `message`,
-  `value`) for the row errors in validation and generation results.
-  `FaceResponse::payload` stays raw
-  `serde_json::Value`, since each face has its own shape. Response
-  structs are `#[non_exhaustive]`.
+  `FaceResponse` with `LossReport`, `RowError` and `RequestError`.
+  `FaceResponse::payload` stays raw `serde_json::Value`, since each face
+  has its own shape. Response structs are `#[non_exhaustive]`.
 - **`MessageType`**: the 13 message types in the server's OpenAPI enum.
   Methods take `impl AsRef<str>`, so a type a newer server adds works as a
   plain string.
 - **`Error`** (`src/error.rs`): `Refused { status, response }` for a
   `422` refusal from `generate`, with the decoded `GenerateResponse`
   (also through `Error::refusal()`); `Api { status, detail }` for any
-  other non-2xx response, where `detail` is a string, or an array for a
-  `422` that `Error::request_errors()` returns typed as `RequestError`
-  items; `Transport` for connection, timeout and TLS failures; `Decode`
-  for a 2xx body of the wrong shape. `Error::status()` covers both
+  other non-2xx response, typed by `Error::request_errors()` for a `422`
+  `detail` array; `Transport` for connection, timeout and TLS failures;
+  `Decode` for a 2xx body of the wrong shape. `Error::status()` covers
   `Refused` and `Api`.
+- **`RetryPolicy`** (`src/retry.rs`): 3 attempts, 200 ms base and 5 s
+  maximum delay by default, for `GET` calls only
+  ([ADR 4](docs/adr/0004-opt-in-retries.md)).
 
 ---
 
@@ -234,25 +255,39 @@ which is not where a payment file's time goes.
 | :--- | :--- | :--- |
 | Base URL | none | `Client::new("http://127.0.0.1:8000")` |
 | API key | none | `.api_key(key)` |
-| Timeout for a whole call | 30 seconds | `.timeout(Duration)` |
+| Timeout per attempt | 30 seconds (`DEFAULT_TIMEOUT`) | `.timeout(Duration)` |
+| Retries | none | `.retry(RetryPolicy::new())`, tuned with `with_max_attempts`, `with_base_delay`, `with_max_delay` |
 | HTTPS | on (rustls) | the `tls` Cargo feature |
 
-The client reads no environment variables. The tests and the example read
-`PAIN001_BASE_URL`, and the example reads `PAIN001_API_KEY`.
+The client reads no environment variables. The tests, examples and
+benchmarks read `PAIN001_BASE_URL` and `PAIN001_API_KEY`.
 
 ---
 
 ## Examples
 
-- [`examples/basic.rs`](examples/basic.rs): generate a pain.001.001.09
-  file from the kit's synthetic credit-transfer CSV, write it to disk,
-  then check it.
+One program per method, each run against a live server in CI's
+conformance job and exiting non-zero when an answer is wrong:
 
-  ```sh
-  PAIN001_BASE_URL=http://127.0.0.1:8000 cargo run --example basic -- payments.xml
-  ```
+```sh
+PAIN001_BASE_URL=http://127.0.0.1:8000 cargo run --example health
+PAIN001_BASE_URL=http://127.0.0.1:8000 make examples   # all of them
+```
 
-CI runs it against a live server on every change.
+| Example | Shows |
+| :--- | :--- |
+| [`basic`](examples/basic.rs) | health, generate a pain.001.001.09 file, write it, check it |
+| [`health`](examples/health.rs) | `health()` |
+| [`validate`](examples/validate.rs) | `validate()`, a valid file and a typed row error |
+| [`generate`](examples/generate.rs) | `generate()` of a pain.008.001.08 direct debit |
+| [`check`](examples/check.rs) | `check()`, the rungs and findings |
+| [`faces`](examples/faces.rs) | `faces()` and their bindings |
+| [`project_face`](examples/project_face.rs) | `project_face()` into Berlin Group, with the loss report |
+| [`request`](examples/request.rs) | `request()`, the raw call, with a 200 and a 404 |
+| [`errors`](examples/errors.rs) | `Error::Api` (string and array `detail`), `Refused`, `Transport`, and `Decode` for a document-less success |
+| [`timeout`](examples/timeout.rs) | `.timeout()` firing against a silent listener |
+| [`api_key`](examples/api_key.rs) | `.api_key()`: 401 without it, 200 with it |
+| [`retry`](examples/retry.rs) | `RetryPolicy`: a `GET` retried past a 503, a `POST` not |
 
 ---
 
@@ -266,8 +301,8 @@ CI runs it against a live server on every change.
 - **You want to read files on the server.** The wrapped endpoints take
   the file's text in the request; the path-based `POST /api/v1/generate`
   is reachable only through `request()`.
-- **You need retries.** None are made; a payment request that may have
-  reached the server is the caller's to retry.
+- **You need a `POST` retried.** The client never repeats one, since that
+  could submit a payment file twice; that decision stays with the caller.
 
 ---
 
@@ -277,17 +312,19 @@ CI runs it against a live server on every change.
 git clone https://github.com/sebastienrousseau/pain001-sdk-rust
 cd pain001-sdk-rust
 make check
-PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
+make regression
 ```
 
-`make check` runs `cargo fmt --check`, clippy with `-D warnings` and the
-complexity lints (`clippy.toml` sets cognitive complexity 15 and 60 lines
-per function), the build, the tests, `cargo doc` with warnings denied and
-`cargo deny check`. The conformance and typed tests talk to the server at
-`PAIN001_BASE_URL` and report themselves skipped when it is unset. CI runs
-everything on stable and on 1.85.0, starts `pain001 serve` from a
-hash-pinned `ci/server-requirements.txt` for the conformance job, and
-checks the DCO and Markdown style. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+`make check` runs rustfmt, clippy with `-D warnings` and the complexity
+lints, the build (benches included), the tests at 100% line and region
+coverage (cargo-llvm-cov), rustdoc with warnings denied, `cargo deny`,
+the complexity ceilings (cyclomatic 10, cognitive 15, Halstead difficulty
+30, 60 lines per function), the version check and the package contents
+check. `make regression` installs the pinned server into a temporary
+venv, starts it on loopback with an API key, and adds the conformance
+kit, every example and the benchmark smoke run. The fuzz targets in
+`fuzz/` run for 30 seconds each on every pull request. See
+[`DEVELOPMENT.md`](DEVELOPMENT.md) for every gate and its CI job.
 
 ---
 
@@ -295,9 +332,13 @@ checks the DCO and Markdown style. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 The crate has no `unsafe` code (`#![forbid(unsafe_code)]`). It never logs
 request or response bodies, which carry payment data, and its `Debug`
-output hides the API key. HTTPS uses rustls with the webpki root store.
-Use HTTPS and an API key for any server that is not on loopback. Every
-dependency is checked by `cargo deny` for RustSec advisories and licences.
+output hides the API key. HTTPS uses rustls with the webpki root store;
+use HTTPS and an API key for any server that is not on loopback. A
+response body is read up to 64 MiB. No `POST` is ever retried. The
+response decoding and error mapping are fuzzed with cargo-fuzz on every
+pull request from committed seeds, and every dependency is checked by
+`cargo deny` for RustSec advisories and licences. CodeQL and OpenSSF
+Scorecard run on `main`; releases carry an SBOM and build provenance.
 
 Report vulnerabilities according to [`SECURITY.md`](SECURITY.md).
 
@@ -305,11 +346,17 @@ Report vulnerabilities according to [`SECURITY.md`](SECURITY.md).
 
 ## Documentation
 
-API reference: `cargo doc --open` (not yet on docs.rs) ·
+[User manual](https://sebastienrousseau.github.io/pain001-sdk-rust/) ·
+[API reference (docs.rs)](https://docs.rs/pain001-sdk) ·
+[Developer docs](DEVELOPMENT.md) ·
+[Ecosystem map](#the-pain001-sdk-rust-ecosystem)
+
+Also: [Architecture](docs/ARCHITECTURE.md) ·
+[Decision records](docs/adr/README.md) ·
 [Conformance kit](conformance/README.md) ·
-[Developer guide](CONTRIBUTING.md) ·
-[Family map](#the-pain001-sdk-rust-ecosystem) ·
 [Changelog](CHANGELOG.md) · [Policies](docs/POLICIES.md) ·
+[Packaging](docs/packaging.md) · [Roadmap](docs/ROADMAP.md) ·
+[Support](SUPPORT.md) · [Governance](GOVERNANCE.md) ·
 [Agent rules](AGENTS.md)
 
 ---
@@ -318,9 +365,14 @@ API reference: `cargo doc --open` (not yet on docs.rs) ·
 
 The project is pre-1.0 and versions advance in `0.0.1` steps, in lockstep
 with the pain001 suite. The breaking axis is the public Rust API: method
-signatures, the `Error` variants and the response types. Response structs
-and enums are `#[non_exhaustive]`, so a field or message type the server
-adds is not breaking. The Rust floor moves only as described in the
+signatures, the `Error` variants, `RetryPolicy` and the response types;
+cargo-semver-checks guards it against the last crates.io release from
+0.0.88 on. Response structs and enums are `#[non_exhaustive]`, so a field
+or message type the server adds is not breaking. The client adds no
+output of its own: what a call returns is what the server sent, decoded,
+so behaviour changes follow the server's release notes and the
+conformance kit. The `internals` feature and `pain001_sdk::fuzzing` are
+not public API. The Rust floor moves only as described in the
 [toolchain policy](docs/POLICIES.md).
 
 ---
@@ -339,3 +391,11 @@ at your option. Dependencies keep their own licences.
 [lsp]: https://github.com/sebastienrousseau/pain001-lsp
 [mt101]: https://github.com/sebastienrousseau/pain001-loader-mt101
 [xlsx]: https://github.com/sebastienrousseau/pain001-loader-xlsx
+[mockbank]: https://github.com/sebastienrousseau/pain001-mockbank
+[template]: https://github.com/sebastienrousseau/pain001-plugin-template
+[fast]: https://github.com/sebastienrousseau/pain001-fast
+[site]: https://pain001.com
+[go]: https://github.com/sebastienrousseau/pain001-sdk-go
+[java]: https://github.com/sebastienrousseau/pain001-sdk-java
+[dotnet]: https://github.com/sebastienrousseau/pain001-sdk-dotnet
+[cpp]: https://github.com/sebastienrousseau/pain001-sdk-cpp

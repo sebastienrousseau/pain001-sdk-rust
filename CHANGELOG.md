@@ -11,6 +11,10 @@ first release will be 0.0.88.
 
 ### Changed
 
+- The README follows the suite's template in full: crates.io and docs.rs
+  badges, the complete family table, the shared ecosystem comparison,
+  measured benchmarks, the example index, and the four documentation
+  links.
 - The version moves to 0.0.88 in `Cargo.toml`, both lockfiles,
   `CITATION.cff`, the `SECURITY.md` support table, the bug report form
   and the `KEYS.asc` example. No 0.0.87 was tagged, so 0.0.88 is this
