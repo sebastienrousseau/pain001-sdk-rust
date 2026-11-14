@@ -24,6 +24,10 @@ first release will be 0.0.88.
 
 ### Added
 
+- REUSE compliance: `REUSE.toml` gives every file its copyright and
+  `Apache-2.0 OR MIT`, `LICENSES/` holds both texts, and the docs-lint
+  workflow runs `reuse lint` and codespell (`.codespellrc`) beside
+  markdownlint; `make docs-lint` runs all three.
 - `scripts/complexity-gate.py` (`make complexity`, part of `make check`,
   and a CI job): every tracked `.rs` file is held to cyclomatic 10,
   cognitive 15, Halstead difficulty 30 and 60 lines per function, and

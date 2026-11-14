@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# codespell, run by the docs-lint job and pre-commit. The kit is vendored
+# and the recorded responses are server output, so neither is checked.
+[codespell]
+skip = ./target,./fuzz/target,./.git,./LICENSES,./conformance,./benches/responses,*.lock,*.gif,./ci/server-requirements.txt,./site
+# serde's `ser` module (serde::ser::Error).
+ignore-words-list = ser
