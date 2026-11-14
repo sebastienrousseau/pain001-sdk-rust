@@ -7,10 +7,12 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release will be 0.0.88.
 
-## [Unreleased]
+## [0.0.88] - 2026-11-14
 
 ### Changed
 
+- CI tests against pain001 0.0.88, the release this SDK ships with
+  (`ci/server-requirements.in`).
 - The README follows the suite's template in full: crates.io and docs.rs
   badges, the complete family table, the shared ecosystem comparison,
   measured benchmarks, the example index, and the four documentation
