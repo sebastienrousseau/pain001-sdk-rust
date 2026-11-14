@@ -1,0 +1,1 @@
+{"face":"a b","version":"pain.001.001.09","payload":{"k":1},"loss_report":{"face":"a b","total_source_elements":2,"mapped_count":1,"unmapped_count":1,"is_lossless":false,"loss_ratio":0.5,"mapped_paths":["/a"],"unmapped_paths":["/b"]}}

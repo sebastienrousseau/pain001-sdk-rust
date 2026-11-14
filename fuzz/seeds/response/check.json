@@ -1,0 +1,1 @@
+{"message_type":"pain.001.001.09","passed":false,"errors":1,"warnings":0,"rungs":["xsd","mdr"],"findings":[{"rung":"xsd","rule":"cvc-type","severity":"error","message":"bad","location":"/Document"}]}

@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+# The committed seeds live in seeds/; libFuzzer writes what it finds to
+# corpus/ and crashes to artifacts/.
+target/
+corpus/
+artifacts/
+coverage/

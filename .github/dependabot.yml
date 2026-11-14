@@ -24,6 +24,22 @@ updates:
       - dependency-name: "sha2"
         versions: [">= 0.11.1"]
 
+  # The cargo-fuzz crate, with its own lockfile (libfuzzer-sys).
+  - package-ecosystem: "cargo"
+    directory: "/fuzz"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    reviewers:
+      - "sebastienrousseau"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+
   - package-ecosystem: "pip"
     directory: "/ci"
     schedule:

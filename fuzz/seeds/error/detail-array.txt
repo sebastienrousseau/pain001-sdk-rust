@@ -1,0 +1,2 @@
+422
+{"detail":[{"type":"enum","loc":["body","message_type"],"msg":"Input should be ...","input":"pain.999","ctx":{"expected":"x"}}]}

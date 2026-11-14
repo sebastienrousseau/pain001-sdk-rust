@@ -35,6 +35,12 @@ mod types;
 #[cfg(test)]
 mod stub;
 
+/// The decoding path without the network, for `fuzz/`. Not public API:
+/// it exists only under `cfg(fuzzing)` and in unit tests.
+#[cfg(any(fuzzing, test))]
+#[doc(hidden)]
+pub mod fuzzing;
+
 pub use client::{Client, DEFAULT_TIMEOUT};
 pub use error::Error;
 pub use types::{
