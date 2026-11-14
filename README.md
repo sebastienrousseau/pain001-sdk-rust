@@ -185,15 +185,15 @@ first; this crate's first release is 0.0.88.
 
 The suite's five SDKs share one method surface and run core's conformance kit against a live `pain001 serve` in CI. Core's CI also generates a Python client from the OpenAPI document, which it imports but does not run against the kit.
 
-| Project | Language (minimum) | Conformance kit in CI | Types | Runtime dependencies | Call model |
-| :--- | :---: | :---: | :---: | :--- | :--- |
-| pain001-sdk-go | Go 1.26 | Yes | Hand-written | None (standard library) | Blocking, `context.Context` |
-| pain001-sdk-java | Java 17 | Yes | Hand-written | Jackson databind | Blocking |
-| **pain001-sdk-rust** | **Rust 1.85** | **Yes** | **Hand-written (serde)** | **ureq, serde, serde_json, thiserror** | **Blocking** |
-| pain001-sdk-dotnet | .NET 10 | Yes | Hand-written | None | async/await, `CancellationToken` |
-| pain001-sdk-cpp | C++17 | Yes | Hand-written | libcurl, nlohmann/json | Blocking |
-| openapi-generator client (core CI artifact) | Python | No, CI imports it only | Generated | Generator's | Blocking |
-| Raw HTTP | Any | No | None | Your HTTP client | Yours |
+| Project | Language (minimum) | Conformance kit in CI | Types |
+| :--- | :---: | :---: | :---: |
+| pain001-sdk-go | Go 1.26 | Yes | Hand-written |
+| pain001-sdk-java | Java 17 | Yes | Hand-written |
+| **pain001-sdk-rust** | **Rust 1.85** | **Yes** | **Hand-written (serde)** |
+| pain001-sdk-dotnet | .NET 10 | Yes | Hand-written |
+| pain001-sdk-cpp | C++17 | Yes | Hand-written |
+| openapi-generator client (core CI artifact) | Python | No, CI imports it only | Generated |
+| Raw HTTP | Any | No | None |
 
 See [`docs/COMPARISON.md`](docs/COMPARISON.md) for the evidence and complete matrix.
 
