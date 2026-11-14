@@ -39,6 +39,25 @@ cargo +nightly fuzz run error fuzz/corpus/error fuzz/seeds/error -- -max_total_t
 A crash input lands in `fuzz/artifacts/`; fix the cause, add a unit
 test for it in the main crate, and add the input to `fuzz/seeds/`.
 
+## The README demo
+
+`.github/demo.gif` is rendered from `.github/demo.tape` with
+[vhs](https://github.com/charmbracelet/vhs), never recorded by hand:
+
+```sh
+uv venv /tmp/pain001-server
+uv pip install --python /tmp/pain001-server/bin/python \
+  --require-hashes -r ci/server-requirements.txt
+PAIN001_SERVER=/tmp/pain001-server/bin/pain001 make demo
+```
+
+`make demo` takes the server binary from `PAIN001_SERVER`, or from
+`pain001` on `PATH`, and stops with a message when neither is there. The
+tape starts that server on 127.0.0.1 in a throwaway directory, runs
+`examples/basic.rs` against it, then stops it; nothing leaves loopback.
+Re-render the GIF in the same change as anything that alters what it
+shows.
+
 ## Rules
 
 - **`conformance/` is vendored from pain001 core.** Never edit it here.

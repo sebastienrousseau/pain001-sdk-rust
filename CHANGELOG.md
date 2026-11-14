@@ -20,6 +20,11 @@ first release will be 0.0.86.
 
 ### Added
 
+- A README demo, `.github/demo.gif`, rendered by `make demo` from
+  `.github/demo.tape`: `cargo run --example basic` against a
+  `pain001 serve` on 127.0.0.1, then the head of the generated file. The
+  server comes from `PAIN001_SERVER` or `PATH`; the GIF and tape are
+  excluded from the package.
 - `Client`, a blocking client for the pain001 REST API on `ureq`, with
   `.api_key(..)` (sent as a bearer token) and `.timeout(..)` (30 seconds
   by default).
