@@ -20,9 +20,15 @@ updates:
     # 1.85 floor (docs/POLICIES.md); 0.11.0 is the newest within it. It is
     # a dev-dependency (the kit checksum test), so it does not justify
     # raising the MSRV. Drop this when the floor reaches 1.88.
+    # criterion 0.8 declares rust-version 1.86, above the same 1.85
+    # floor; 0.7 is the newest within it. A dev-dependency (the
+    # benchmarks), so it does not justify raising the MSRV either. Drop
+    # this when the floor reaches 1.86.
     ignore:
       - dependency-name: "sha2"
         versions: [">= 0.11.1"]
+      - dependency-name: "criterion"
+        versions: [">= 0.8.0"]
 
   # The cargo-fuzz crate, with its own lockfile (libfuzzer-sys).
   - package-ecosystem: "cargo"
