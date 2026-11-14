@@ -6,7 +6,7 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: check fmt fmt-check lint build test coverage doc deny conformance demo clean
+.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples demo clean
 
 check: fmt-check lint build test coverage doc deny
 
@@ -40,10 +40,25 @@ doc:
 deny:
 	$(CARGO) deny --locked check
 
-# The kit against a live server: PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
+# The kit, the typed tests and every example against a live server:
+#   PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
+# Set PAIN001_API_KEY too when the server was started with one.
 conformance:
 	@test -n "$(PAIN001_BASE_URL)" || { echo "set PAIN001_BASE_URL"; exit 1; }
 	$(CARGO) test --locked --test conformance --test typed -- --nocapture
+	$(MAKE) examples
+
+# Every program in examples/, each exiting non-zero when the server does
+# not answer as it expects.
+EXAMPLES := $(sort $(basename $(notdir $(wildcard examples/*.rs))))
+
+examples:
+	@test -n "$(PAIN001_BASE_URL)" || { echo "set PAIN001_BASE_URL"; exit 1; }
+	$(CARGO) build --locked --examples
+	@for example in $(EXAMPLES); do \
+	  echo "== example $$example"; \
+	  $(CARGO) run --quiet --locked --example $$example || exit 1; \
+	done
 
 # Renders .github/demo.gif from .github/demo.tape (needs vhs). The tape
 # starts the pain001 server on 127.0.0.1: set PAIN001_SERVER to its

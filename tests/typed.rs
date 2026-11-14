@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 //! One test per SDK method against the server at `PAIN001_BASE_URL`,
-//! asserting the typed fields. Each test is skipped, with a message, when
-//! the variable is unset.
+//! asserting the typed fields, with `PAIN001_API_KEY` as the bearer token
+//! when it is set. Each test is skipped, with a message, when
+//! `PAIN001_BASE_URL` is unset.
 
 use std::fs;
 use std::path::Path;
@@ -14,7 +15,11 @@ const CREDIT_XML: &str = "credit-transfer.pain.001.001.09.xml";
 
 fn live() -> Option<Client> {
     match std::env::var("PAIN001_BASE_URL") {
-        Ok(url) => Some(Client::new(url)),
+        // A server started with PAIN001_API_KEY wants the key on every call.
+        Ok(url) => Some(match std::env::var("PAIN001_API_KEY") {
+            Ok(key) if !key.is_empty() => Client::new(url).api_key(key),
+            _ => Client::new(url),
+        }),
         Err(_) => {
             eprintln!("skipped: set PAIN001_BASE_URL to run the typed tests");
             None

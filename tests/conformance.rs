@@ -180,7 +180,11 @@ fn every_case_holds_for_the_live_server() {
         eprintln!("skipped: set PAIN001_BASE_URL to run the conformance kit");
         return;
     };
-    let client = Client::new(base_url);
+    // A server started with PAIN001_API_KEY wants the key on every call.
+    let client = match std::env::var("PAIN001_API_KEY") {
+        Ok(key) if !key.is_empty() => Client::new(base_url).api_key(key),
+        _ => Client::new(base_url),
+    };
     let cases = cases();
     let mut failed = Vec::new();
     for case in &cases {

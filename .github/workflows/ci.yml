@@ -113,25 +113,25 @@ jobs:
           python -m venv "$RUNNER_TEMP/server"
           "$RUNNER_TEMP/server/bin/python" -m pip install --quiet --require-hashes \
             -r ci/server-requirements.txt
-      - name: Start pain001 serve
+      - name: Start pain001 serve with an API key
         run: |
+          # A throwaway key, so the api_key example sees the 401 without it.
+          key="ci-$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+          echo "::add-mask::$key"
+          echo "PAIN001_API_KEY=$key" >> "$GITHUB_ENV"
           cd "$RUNNER_TEMP"
-          nohup "$RUNNER_TEMP/server/bin/pain001" serve --host 127.0.0.1 --port 8000 \
-            > "$RUNNER_TEMP/server.log" 2>&1 &
+          PAIN001_API_KEY="$key" nohup "$RUNNER_TEMP/server/bin/pain001" serve \
+            --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/server.log" 2>&1 &
           for _ in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:8000/api/v1/health; then exit 0; fi
             sleep 1
           done
           cat "$RUNNER_TEMP/server.log"
           exit 1
-      - name: Conformance and typed tests
+      - name: Conformance kit, typed tests and every example
         env:
           PAIN001_BASE_URL: http://127.0.0.1:8000
-        run: cargo test --locked --test conformance --test typed -- --nocapture
-      - name: Example
-        env:
-          PAIN001_BASE_URL: http://127.0.0.1:8000
-        run: cargo run --locked --example basic -- "$RUNNER_TEMP/payments.xml"
+        run: make conformance
       - name: Server log
         if: failure()
         run: cat "$RUNNER_TEMP/server.log"

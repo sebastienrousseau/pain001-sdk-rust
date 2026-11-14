@@ -24,6 +24,16 @@ first release will be 0.0.88.
 
 ### Added
 
+- One runnable example per method in `examples/`: `health`, `validate`,
+  `generate`, `check`, `faces`, `project_face`, `request` (the raw call),
+  `errors` (`Error::Api` with a string and an array `detail`,
+  `Error::Refused`, `Error::Transport`, and `Error::Decode` for a
+  document-less success), `timeout`, `api_key` and `retry`, beside
+  `basic`. Each exits non-zero when the server does not answer as it
+  expects. `make examples` runs them all, `make conformance` now runs
+  them after the kit, and CI's conformance job does so against a server
+  started with a throwaway `PAIN001_API_KEY`, which the live tests now
+  send when it is set.
 - `RetryPolicy`, opt-in through `Client::retry`: `GET` calls (`health`,
   `faces`, `request` with `"GET"`) are tried again after a transport
   error or an HTTP `429` or `503`, up to 3 attempts by default, with
