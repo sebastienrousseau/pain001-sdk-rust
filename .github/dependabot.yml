@@ -14,7 +14,7 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore"
       include: "scope"
     # sha2 0.11.1 and later declare rust-version 1.88, above this crate's
     # 1.85 floor (docs/POLICIES.md); 0.11.0 is the newest within it. It is
@@ -37,7 +37,7 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore"
       include: "scope"
 
   - package-ecosystem: "pip"
@@ -51,7 +51,7 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore"
       include: "scope"
     # The server version is pinned to the kit's core release; it moves
     # with the suite, not on its own.
@@ -85,7 +85,7 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore"
       include: "scope"
 
   # The manual's build inputs (MkDocs Material), hash-locked.
@@ -100,5 +100,5 @@ updates:
       - "dependencies"
       - "automated"
     commit-message:
-      prefix: "chore(deps):"
+      prefix: "chore"
       include: "scope"
