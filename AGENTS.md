@@ -36,11 +36,14 @@ as well.
 
 ```sh
 make check
-PAIN001_BASE_URL=http://127.0.0.1:8000 make conformance
+make regression
 ```
 
-`make check` must pass before a push; the conformance run needs a live
-`pain001 serve` at the kit's version.
+`make check` must pass before a push (it includes 100% line and region
+coverage and the complexity ceilings); `make regression` installs the
+pinned server, starts it on loopback and adds the conformance kit, every
+example and the benchmark smoke run. DEVELOPMENT.md maps every CI job to
+its command.
 
 ## Leave alone
 

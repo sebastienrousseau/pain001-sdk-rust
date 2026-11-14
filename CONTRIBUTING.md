@@ -15,8 +15,12 @@ make check
 ```
 
 That is `cargo fmt --check`, clippy with `-D warnings` and the
-complexity lints, the build, the tests, `cargo doc` with warnings denied
-and `cargo deny check` (install it with `cargo install cargo-deny --locked`).
+complexity lints, the build, the tests at 100% line and region coverage,
+`cargo doc` with warnings denied, `cargo deny check`, the complexity
+ceilings, the version check and the package contents check.
+[DEVELOPMENT.md](https://github.com/sebastienrousseau/pain001-sdk-rust/blob/main/DEVELOPMENT.md)
+lists the tools and maps every CI job to its local command;
+`make regression` runs everything against a server it starts.
 
 The conformance and typed tests need a server:
 
