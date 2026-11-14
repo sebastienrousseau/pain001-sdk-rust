@@ -6,7 +6,7 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: docs-lint complexity versions package-check api-check check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
+.PHONY: manual docs-lint complexity versions package-check api-check check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke regression demo clean
 
 check: fmt-check lint build test coverage doc deny versions package-check complexity
 
@@ -39,6 +39,13 @@ doc:
 # Needs cargo-deny (`cargo install cargo-deny --locked`).
 deny:
 	$(CARGO) deny --locked check
+
+# The user manual into site/ (MkDocs strict, API reference, offline link
+# check, footer check). Needs the docs requirements: `python3 -m venv
+# .venv-docs && .venv-docs/bin/pip install --require-hashes -r
+# docs/requirements.txt`, then MKDOCS=.venv-docs/bin/mkdocs make manual.
+manual:
+	scripts/build-manual.sh
 
 # What the docs-lint workflow runs: Markdown style, spelling and REUSE.
 # Needs node (npx), codespell and reuse (`pipx install codespell reuse`).

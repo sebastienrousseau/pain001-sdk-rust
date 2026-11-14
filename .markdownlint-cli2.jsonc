@@ -19,6 +19,8 @@
   "ignores": [
     "node_modules/**",
     "target/**",
+    "site/**",
+    ".venv-docs/**",
     "CHANGELOG.md",
     "conformance/**"
   ]

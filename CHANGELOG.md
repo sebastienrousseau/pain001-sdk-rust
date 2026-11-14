@@ -24,6 +24,16 @@ first release will be 0.0.88.
 
 ### Added
 
+- Documentation: `DEVELOPMENT.md` (toolchain, every CI gate and its
+  local command, test layout, release model, the settings the maintainer
+  creates), `GOVERNANCE.md`, and in `docs/` the architecture, ADRs 1 to 5,
+  the ecosystem comparison with evidence links, the benchmarks with their
+  environment, the roadmap and a packaging guide.
+- A user manual: MkDocs Material from `docs/` with the root documents
+  included, the rustdoc API reference under `/api/`, built strict with an
+  offline link check and the author footer checked on every page
+  (`make manual`, `scripts/build-manual.sh`), deployed to GitHub Pages
+  by the Manual workflow once the maintainer enables Pages.
 - `.editorconfig`, `.pre-commit-config.yaml` (local hooks: fmt, clippy,
   complexity, versions, codespell, markdownlint, REUSE) and a
   `.devcontainer/` whose image, pinned by digest and tracked by
