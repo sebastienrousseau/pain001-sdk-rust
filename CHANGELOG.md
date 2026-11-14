@@ -24,6 +24,17 @@ first release will be 0.0.88.
 
 ### Added
 
+- Publishing to crates.io as `pain001-sdk`: `Cargo.toml` now says
+  `publish = ["crates-io"]` (was `publish = false`), and
+  `.github/workflows/release.yml` releases a `v<version>` tag: version
+  check, `cargo package`, a CycloneDX SBOM, `SHA256SUMS` and build
+  provenance attestations, a GitHub release titled
+  `pain001-sdk-rust <version>` with notes composed by the suite's
+  `scripts/release_notes.py` (vendored from core) from
+  `releases/v<version>.md`, then `cargo publish` through trusted
+  publishing in the `release` environment. A manual run is a dry run,
+  and a re-run replaces assets and tolerates a version already
+  published. See `docs/adr/0005-publish-to-crates-io.md`.
 - `scripts/verify-release-versions` (`make versions`, part of
   `make check` and CI): fails when a lockfile, `CITATION.cff`, the
   `SECURITY.md` or `SUPPORT.md` table, the README install snippet, the

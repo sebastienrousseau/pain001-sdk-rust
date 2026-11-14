@@ -11,7 +11,8 @@ homepage = "https://pain001.com"
 readme = "README.md"
 keywords = ["iso20022", "pain001", "payments", "sepa", "client"]
 categories = ["api-bindings", "finance"]
-publish = false
+# crates.io only, from the release workflow (docs/adr/0005).
+publish = ["crates-io"]
 # What the package ships: the library, its tests, examples and benches
 # with the kit they read, and the licences. The README demo, fuzz/,
 # docs/, scripts/ and CI files stay in the repository.
