@@ -10,7 +10,7 @@
 //! ```
 //!
 //! With `PAIN001_API_KEY` set, it exits non-zero unless the keyless call
-//! gets 401 and the keyed one succeeds. `Debug` output never shows the key.
+//! gets 401, the keyed one succeeds and `Debug` output hides the key.
 
 use pain001_sdk::{Client, MessageType};
 
@@ -42,8 +42,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("a keyless call got {status:?}, want 401").into());
         }
     }
-    let keyed = Client::new(&base).api_key(key);
-    println!("{keyed:?}");
+    let keyed = Client::new(&base).api_key(&key);
+    // Debug output redacts the key; check that rather than print it.
+    let redacted = key.is_empty() || !format!("{keyed:?}").contains(&key);
+    println!("Debug output hides the key: {redacted}");
+    if !redacted {
+        return Err("the client's Debug output showed the API key".into());
+    }
     let status = validate(&keyed, &csv);
     println!("with the key: {status:?}");
     if status != Some(200) {

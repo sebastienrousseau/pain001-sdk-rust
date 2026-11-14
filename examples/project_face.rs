@@ -40,9 +40,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         report.total_source_elements,
         report.is_lossless
     );
-    let iban = &projected.payload["debtorAccount"]["iban"];
-    println!("debtorAccount.iban = {iban}");
-    if iban.as_str().is_none() {
+    // An account number is payment data: check it arrived, never print it.
+    let carried = projected.payload["debtorAccount"]["iban"].is_string();
+    println!("debtorAccount.iban carried: {carried}");
+    if !carried {
         return Err("the payload should carry the debtor IBAN".into());
     }
     Ok(())
