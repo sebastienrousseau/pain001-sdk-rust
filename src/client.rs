@@ -9,7 +9,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 use ureq::http;
 
-use crate::error::{api_error, generate_error, Error};
+use crate::error::{api_error, generate_error, generated, Error};
 use crate::types::{
     CheckRequest, CheckResponse, FaceInfo, FaceRequest, FaceResponse, FilePayload,
     GenerateResponse, HealthResponse, ValidationResponse,
@@ -107,7 +107,9 @@ impl Client {
     ///
     /// [`Error::Refused`] when the server refuses the rows or a scheme rule
     /// (HTTP `422`), carrying the typed findings; [`Error::Api`] for any
-    /// other non-2xx reply, such as a `400` for an unreadable file.
+    /// other non-2xx reply, such as a `400` for an unreadable file;
+    /// [`Error::Decode`] for a 2xx reply without `success: true` and the
+    /// XML, so an `Ok` always carries the document.
     pub fn generate(
         &self,
         content: &str,
@@ -122,6 +124,7 @@ impl Client {
             scheme,
         };
         self.call_with("POST", "/api/v1/ui/generate", Some(&body), generate_error)
+            .and_then(generated)
     }
 
     /// `POST /api/v1/check`: runs the validation ladder on an existing

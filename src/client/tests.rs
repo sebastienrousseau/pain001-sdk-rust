@@ -110,6 +110,28 @@ fn a_422_from_generate_without_a_refusal_body_stays_an_api_error() {
 }
 
 #[test]
+fn a_2xx_generate_without_the_xml_is_a_decode_error() {
+    // Found by the `response` fuzz target: the README promises that an
+    // `Ok` from generate always carries the XML.
+    for body in [
+        r#"{"success":true,"message":"Generated"}"#,
+        r#"{"success":true,"message":"Generated","xml":null}"#,
+        r#"{"success":false,"message":"Validation failed","xml":"<x/>"}"#,
+    ] {
+        let (url, _seen) = serve(200, body);
+        let error = Client::new(url)
+            .generate("x", "p.csv", "pain.001.001.09", None)
+            .expect_err("no document");
+        assert!(matches!(error, Error::Decode(_)), "{body}: {error:?}");
+    }
+    let (url, _seen) = serve(200, r#"{"success":true,"message":"ok","xml":"<x/>"}"#);
+    let generated = Client::new(url)
+        .generate("x", "p.csv", "pain.001.001.09", None)
+        .expect("document");
+    assert_eq!(generated.xml.as_deref(), Some("<x/>"));
+}
+
+#[test]
 fn an_array_detail_maps_to_an_api_error() {
     let (url, _seen) = serve(422, r#"{"detail":[{"loc":["body","xml"]}]}"#);
     let error = Client::new(url).check("<x/>", None, None).expect_err("422");

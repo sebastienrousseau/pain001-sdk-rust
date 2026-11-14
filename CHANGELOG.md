@@ -51,3 +51,14 @@ first release will be 0.0.86.
 - CI on stable and on Rust 1.85.0, cargo-deny, the conformance job
   against `pain001 serve` 0.0.86 from hash-pinned requirements, the DCO
   check and Markdown lint.
+
+### Fixed
+
+- `generate` returns `Error::Decode` for a 2xx reply that lacks
+  `success: true` or the XML, so an `Ok` always carries the document as
+  the README says; it used to return the `GenerateResponse` with
+  `xml: None`. A `422` whose body has `success: false` but also carries
+  `xml` stays `Error::Api` instead of becoming `Error::Refused`, whose
+  response is documented to have no XML. pain001 0.0.87 sends neither
+  shape; adding the fuzz targets showed that the client enforced
+  neither promise.
