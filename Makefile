@@ -6,7 +6,7 @@
 CARGO ?= cargo
 CLIPPY_FLAGS := -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
 
-.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples demo clean
+.PHONY: check fmt fmt-check lint build test coverage doc deny conformance examples bench bench-smoke demo clean
 
 check: fmt-check lint build test coverage doc deny
 
@@ -17,11 +17,11 @@ fmt-check:
 	$(CARGO) fmt --check
 
 lint:
-	$(CARGO) clippy --locked --all-targets -- $(CLIPPY_FLAGS)
+	$(CARGO) clippy --locked --all-targets --all-features -- $(CLIPPY_FLAGS)
 	$(CARGO) clippy --locked --all-targets --no-default-features -- $(CLIPPY_FLAGS)
 
 build:
-	$(CARGO) build --locked --all-targets
+	$(CARGO) build --locked --all-targets --all-features
 
 test:
 	$(CARGO) test --locked
@@ -59,6 +59,17 @@ examples:
 	  echo "== example $$example"; \
 	  $(CARGO) run --quiet --locked --example $$example || exit 1; \
 	done
+
+# Every benchmark (criterion): benches/client.rs, client-side cost with no
+# network, and benches/roundtrip.rs, a loopback round trip per method
+# against PAIN001_BASE_URL (skipped without it). Reports land in
+# target/criterion/. Pass criterion options with BENCH_ARGS.
+bench:
+	$(CARGO) bench --locked --all-features -- $(BENCH_ARGS)
+
+# Each benchmark once, unmeasured: keeps them compiling and running.
+bench-smoke:
+	$(CARGO) bench --locked --all-features -- --test
 
 # Renders .github/demo.gif from .github/demo.tape (needs vhs). The tape
 # starts the pain001 server on 127.0.0.1: set PAIN001_SERVER to its

@@ -24,6 +24,18 @@ first release will be 0.0.88.
 
 ### Added
 
+- Benchmarks of every public method with criterion 0.7 (a
+  dev-dependency; 0.8 needs Rust 1.86, above the floor):
+  `benches/client.rs` times the client-side cost with no network,
+  encoding each request body and decoding each response from the kit's
+  fixtures and the responses in `benches/responses/` (recorded from
+  pain001 0.0.87 by `scripts/record-bench-responses.sh`), and
+  `benches/roundtrip.rs` times a loopback round trip per method against
+  `PAIN001_BASE_URL`, skipped without it. `make bench` runs them,
+  `make bench-smoke` runs each once, and CI smoke-runs both on every
+  pull request. The client-side bench reaches the encoding and decoding
+  through `pain001_sdk::fuzzing`, now also compiled with the new
+  `internals` feature, which is not public API.
 - One runnable example per method in `examples/`: `health`, `validate`,
   `generate`, `check`, `faces`, `project_face`, `request` (the raw call),
   `errors` (`Error::Api` with a string and an array `detail`,

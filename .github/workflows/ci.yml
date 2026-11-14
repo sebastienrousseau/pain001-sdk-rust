@@ -33,7 +33,7 @@ jobs:
         run: cargo fmt --check
       - name: Clippy (default features)
         run: >-
-          cargo clippy --locked --all-targets --
+          cargo clippy --locked --all-targets --all-features --
           -D warnings -W clippy::cognitive_complexity -W clippy::too_many_lines
       - name: Clippy (no default features)
         run: >-
@@ -60,10 +60,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
         with:
           toolchain: ${{ matrix.toolchain }}
-      - name: Build
-        run: cargo build --locked --all-targets
+      - name: Build (benches included)
+        run: cargo build --locked --all-targets --all-features
       - name: Unit tests (live tests report themselves skipped)
         run: cargo test --locked
+      - name: Benchmark smoke run (round trips skip without a server)
+        run: make bench-smoke
 
   coverage:
     name: Coverage (100% lines and regions)
@@ -132,6 +134,10 @@ jobs:
         env:
           PAIN001_BASE_URL: http://127.0.0.1:8000
         run: make conformance
+      - name: Benchmark smoke run, round trips included
+        env:
+          PAIN001_BASE_URL: http://127.0.0.1:8000
+        run: make bench-smoke
       - name: Server log
         if: failure()
         run: cat "$RUNNER_TEMP/server.log"

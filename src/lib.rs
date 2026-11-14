@@ -37,9 +37,10 @@ mod types;
 #[cfg(test)]
 mod stub;
 
-/// The decoding path without the network, for `fuzz/`. Not public API:
-/// it exists only under `cfg(fuzzing)` and in unit tests.
-#[cfg(any(fuzzing, test))]
+/// The encoding and decoding paths without the network, for `fuzz/` and
+/// `benches/`. Not public API: it exists only under `cfg(fuzzing)`, with
+/// the `internals` feature, and in unit tests.
+#[cfg(any(fuzzing, test, feature = "internals"))]
 #[doc(hidden)]
 pub mod fuzzing;
 

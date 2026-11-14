@@ -185,7 +185,7 @@ impl Client {
         version: Option<&str>,
         bindings: Option<&Map<String, Value>>,
     ) -> Result<FaceResponse, Error> {
-        let path = format!("/api/v1/faces/{}", encode_segment(face));
+        let path = face_path(face);
         let body = FaceRequest {
             xml,
             version,
@@ -236,10 +236,7 @@ impl Client {
     where
         B: Serialize + ?Sized,
     {
-        let bytes = body
-            .map(serde_json::to_vec)
-            .transpose()
-            .map_err(Error::Decode)?;
+        let bytes = encode(body)?;
         self.send(method, path, bytes)
     }
 
@@ -329,6 +326,22 @@ where
         return Err(on_error(status, value));
     }
     serde_json::from_value(value).map_err(Error::Decode)
+}
+
+/// A request body as JSON bytes; a body that cannot be encoded is
+/// [`Error::Decode`].
+pub(crate) fn encode<B>(body: Option<&B>) -> Result<Option<Vec<u8>>, Error>
+where
+    B: Serialize + ?Sized,
+{
+    body.map(serde_json::to_vec)
+        .transpose()
+        .map_err(Error::Decode)
+}
+
+/// The path of `POST /api/v1/faces/{face}`, with `face` percent-encoded.
+pub(crate) fn face_path(face: &str) -> String {
+    format!("/api/v1/faces/{}", encode_segment(face))
 }
 
 /// Parses a response body: empty is `null`, non-JSON is a JSON string.
