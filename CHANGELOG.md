@@ -24,6 +24,10 @@ first release will be 0.0.88.
 
 ### Added
 
+- `.editorconfig`, `.pre-commit-config.yaml` (local hooks: fmt, clippy,
+  complexity, versions, codespell, markdownlint, REUSE) and a
+  `.devcontainer/` whose image, pinned by digest and tracked by
+  Dependabot, carries the tools `make check` needs at CI's versions.
 - REUSE compliance: `REUSE.toml` gives every file its copyright and
   `Apache-2.0 OR MIT`, `LICENSES/` holds both texts, and the docs-lint
   workflow runs `reuse lint` and codespell (`.codespellrc`) beside
