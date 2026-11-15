@@ -5,7 +5,11 @@
 All notable changes to this project are documented in this file. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
-first release will be 0.0.88.
+first release was 0.0.88.
+
+## [Unreleased]
+
+## [0.0.89] - Unreleased
 
 ## [0.0.88] - 2026-11-14
 
