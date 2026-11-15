@@ -18,4 +18,4 @@ A client at version 0.0.N vendors the conformance kit from core's main
 branch at the time of its release, byte for byte, pinned by
 `conformance/SHA256SUMS`. CI runs the kit against the pain001 server
 pinned in `ci/server-requirements.in`: the latest published release,
-currently 0.0.87, while this client prepares 0.0.88.
+currently 0.0.88, the same version as this client.
