@@ -11,6 +11,11 @@ first release was 0.0.88.
 
 ### Changed
 
+- CI tests against pain001 0.0.90 (`ci/server-requirements.in`), which
+  fixes a race in core's `lazy_module` that made a freshly started
+  `pain001 serve` answer its first parallel requests with HTTP 500.
+  The vendored conformance kit is unchanged: core's `conformance/` is
+  identical between 0.0.88 and 0.0.90.
 - The version moves to 0.0.90 in `Cargo.toml`, both lockfiles,
   `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
   README and manual install snippets, the bug report form, the
