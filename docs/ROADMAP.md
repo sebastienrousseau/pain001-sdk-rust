@@ -5,10 +5,15 @@
 Direction, not commitments. The suite releases in lockstep, one `0.0.1`
 step at a time; this crate follows core's method surface.
 
-## 0.0.89 (this release)
+## 0.0.90 (this release)
 
-- In lockstep with pain001 0.0.89: CI runs the conformance kit against
-  it, and cargo-semver-checks compares the API with 0.0.88 from
+- In lockstep with pain001 0.0.90: CI tests against it, a server that
+  no longer answers its first parallel requests with HTTP 500.
+
+## 0.0.89 (released 2026-11-16)
+
+- In lockstep with pain001 0.0.89: CI ran the conformance kit against
+  it, and cargo-semver-checks compared the API with 0.0.88 from
   crates.io on every pull request.
 
 ## 0.0.88

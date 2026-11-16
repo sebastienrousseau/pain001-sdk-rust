@@ -63,7 +63,7 @@
 
 ```toml
 [dependencies]
-pain001-sdk = "0.0.89"
+pain001-sdk = "0.0.90"
 ```
 
 Every release from 0.0.88 on is on crates.io. To try unreleased work,
