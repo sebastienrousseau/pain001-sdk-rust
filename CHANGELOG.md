@@ -13,6 +13,10 @@ first release was 0.0.88.
 
 ### Changed
 
+- The version moves to 0.0.89 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
+  README and manual install snippets, the bug report form, the
+  `KEYS.asc` example and the packaging guide's commands.
 - `ureq` moves to 3.5.2 (was 3.5.1) in `Cargo.lock`, matching
   `fuzz/Cargo.lock`. The `Cargo.toml` requirement is unchanged.
 

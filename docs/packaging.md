@@ -38,8 +38,8 @@ The package ships its tests, examples, benches and the conformance kit
 they read, so a packager can test the tarball with no network:
 
 ```sh
-tar -xzf pain001-sdk-0.0.88.crate
-cd pain001-sdk-0.0.88
+tar -xzf pain001-sdk-0.0.89.crate
+cd pain001-sdk-0.0.89
 cargo test --locked --offline --all-features
 ```
 
@@ -50,8 +50,8 @@ package carries no demo, fuzz, docs or CI files.
 ## Verifying a release
 
 ```sh
-gh release download v0.0.88 -R sebastienrousseau/pain001-sdk-rust
+gh release download v0.0.89 -R sebastienrousseau/pain001-sdk-rust
 sha256sum -c SHA256SUMS
-gh attestation verify pain001-sdk-0.0.88.crate -R sebastienrousseau/pain001-sdk-rust
-git -c gpg.ssh.allowedSignersFile=KEYS.asc verify-tag v0.0.88
+gh attestation verify pain001-sdk-0.0.89.crate -R sebastienrousseau/pain001-sdk-rust
+git -c gpg.ssh.allowedSignersFile=KEYS.asc verify-tag v0.0.89
 ```

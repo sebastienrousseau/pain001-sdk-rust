@@ -63,7 +63,7 @@
 
 ```toml
 [dependencies]
-pain001-sdk = "0.0.88"
+pain001-sdk = "0.0.89"
 ```
 
 0.0.88 is the first release published to crates.io. Before it is out,
