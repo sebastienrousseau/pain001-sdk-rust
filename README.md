@@ -63,16 +63,16 @@
 
 ```toml
 [dependencies]
-pain001-sdk = "0.0.88"
+pain001-sdk = "0.0.89"
 ```
 
-0.0.88 is the first release published to crates.io. Before it is out,
+Every release from 0.0.88 on is on crates.io. To try unreleased work,
 depend on the repository instead:
 `pain001-sdk = { git = "https://github.com/sebastienrousseau/pain001-sdk-rust" }`.
 The client needs a running pain001 server, which is a Python package:
 
 ```sh
-pip install 'pain001[api]==0.0.88'
+pip install 'pain001[api]==0.0.89'
 pain001 serve --host 127.0.0.1 --port 8000
 ```
 
@@ -88,7 +88,7 @@ snippet above.
 - Rust 1.85 or newer (`rust-version` in `Cargo.toml`), built and tested
   in CI on 1.85.0 and stable on Linux ([toolchain policy](docs/POLICIES.md)).
 - A pain001 server to talk to. CI runs the conformance kit in
-  `conformance/` against pain001 0.0.88, the latest release, pinned in
+  `conformance/` against pain001 0.0.89, the latest release, pinned in
   `ci/server-requirements.in`.
 - No async runtime: every call blocks the calling thread. Any platform
   ureq and rustls support; CI runs on Linux, development happens on macOS.
@@ -147,7 +147,7 @@ match client.generate(&csv, "payments.csv", "pain.001.001.09", Some("uk-chaps"))
 This crate is one of the pain001 suite. pain001 has one engine, the
 Python server, and thin typed clients per language that all pass one
 shared conformance kit. The suite releases together at one version, core
-first; this crate's first release is 0.0.88.
+first; this crate's first release was 0.0.88.
 
 | Component | Purpose | Use case |
 | :--- | :--- | :--- |

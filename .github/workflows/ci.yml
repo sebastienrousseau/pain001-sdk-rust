@@ -102,7 +102,7 @@ jobs:
         run: make versions
       - name: The package ships no repository-only file
         run: make package-check
-      - name: API breakage against the last crates.io release (none yet)
+      - name: API breakage against the last crates.io release
         run: make api-check
 
   coverage:

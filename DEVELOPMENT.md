@@ -142,12 +142,12 @@ and a version already on crates.io is reported, not failed.
 
 ### Settings the maintainer creates
 
-None of these exist yet, and none are created by automation:
+The maintainer creates these by hand; none are created by automation:
 
 | Setting | Where | Why |
 | :--- | :--- | :--- |
 | `release` environment | Settings, Environments | the publish job runs in it; add a required reviewer |
-| First publish of 0.0.88 | crates.io | crates.io registers a trusted publisher only for a crate that exists: publish 0.0.88 once by hand from the signed tag (`cargo publish --locked`), or set `CRATES_IO_BOOTSTRAP_TOKEN` (a scoped crates.io token) as a `release` environment secret for that one run, then delete it and revoke the token |
+| First publish of 0.0.88 (done: 0.0.88 is on crates.io) | crates.io | crates.io registers a trusted publisher only for a crate that exists: publish 0.0.88 once by hand from the signed tag (`cargo publish --locked`), or set `CRATES_IO_BOOTSTRAP_TOKEN` (a scoped crates.io token) as a `release` environment secret for that one run, then delete it and revoke the token |
 | Trusted publisher | crates.io, `pain001-sdk`, Settings, Trusted Publishing | repository `sebastienrousseau/pain001-sdk-rust`, workflow `release.yml`, environment `release` |
 | GitHub Pages | Settings, Pages, Source: GitHub Actions | the manual's deploy job |
 | `PAGES_ENABLED` = `true` | Settings, Variables, Actions | turns the manual's deploy job on once Pages is enabled |

@@ -6,11 +6,12 @@
 
 | Version | Status | Security fixes |
 | :--- | :--- | :--- |
-| `0.0.88` | Current (first release) | Yes |
+| `0.0.89` | Current | Yes |
+| `0.0.88` | Prior (first release) | No: upgrade to 0.0.89 |
 
-0.0.88 is the first release, in lockstep with the pain001 suite. From
-then on the latest release receives security fixes; an older release is
-fixed by upgrading, since each step is `0.0.1`.
+The latest release, in lockstep with the pain001 suite, receives
+security fixes; an older release is fixed by upgrading, since each step
+is `0.0.1`.
 
 ## Reporting a vulnerability
 

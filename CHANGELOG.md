@@ -5,7 +5,29 @@
 All notable changes to this project are documented in this file. The
 format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
-first release will be 0.0.88.
+first release was 0.0.88.
+
+## [0.0.89] - 2026-11-16
+
+In lockstep with pain001 0.0.89.
+
+### Changed
+
+- CI tests against pain001 0.0.89, the release this SDK ships with
+  (`ci/server-requirements.in`). The vendored conformance kit is
+  unchanged: core's 0.0.89 kit is byte-identical to 0.0.88's.
+- The version moves to 0.0.89 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
+  README and manual install snippets, the bug report form, the
+  `KEYS.asc` example and the packaging guide's commands.
+- `ureq` moves to 3.5.2 (was 3.5.1) in `Cargo.lock`, matching
+  `fuzz/Cargo.lock`. The `Cargo.toml` requirement is unchanged.
+
+### Fixed
+
+- The README, roadmap, development guide, Makefile and CI step name no
+  longer say that 0.0.88 is still to be published or that crates.io has
+  no release to check the API against; 0.0.88 shipped on 2026-11-14.
 
 ## [0.0.88] - 2026-11-14
 
