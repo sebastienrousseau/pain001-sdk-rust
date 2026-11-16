@@ -7,12 +7,15 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
-## [Unreleased]
+## [0.0.89] - 2026-11-16
 
-## [0.0.89] - Unreleased
+In lockstep with pain001 0.0.89.
 
 ### Changed
 
+- CI tests against pain001 0.0.89, the release this SDK ships with
+  (`ci/server-requirements.in`). The vendored conformance kit is
+  unchanged: core's 0.0.89 kit is byte-identical to 0.0.88's.
 - The version moves to 0.0.89 in `Cargo.toml`, both lockfiles,
   `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
   README and manual install snippets, the bug report form, the
