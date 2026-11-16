@@ -20,6 +20,12 @@ first release was 0.0.88.
 - `ureq` moves to 3.5.2 (was 3.5.1) in `Cargo.lock`, matching
   `fuzz/Cargo.lock`. The `Cargo.toml` requirement is unchanged.
 
+### Fixed
+
+- The README, roadmap, development guide, Makefile and CI step name no
+  longer say that 0.0.88 is still to be published or that crates.io has
+  no release to check the API against; 0.0.88 shipped on 2026-11-14.
+
 ## [0.0.88] - 2026-11-14
 
 ### Changed

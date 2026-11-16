@@ -69,7 +69,7 @@ versions:
 package-check:
 	scripts/check-package.sh
 
-# cargo-semver-checks against the newest crates.io release (none yet).
+# cargo-semver-checks against the newest crates.io release.
 api-check:
 	scripts/api-check.sh
 

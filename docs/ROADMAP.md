@@ -5,7 +5,13 @@
 Direction, not commitments. The suite releases in lockstep, one `0.0.1`
 step at a time; this crate follows core's method surface.
 
-## 0.0.88 (this release)
+## 0.0.89 (this release)
+
+- In lockstep with pain001 0.0.89: CI runs the conformance kit against
+  it, and cargo-semver-checks compares the API with 0.0.88 from
+  crates.io on every pull request.
+
+## 0.0.88
 
 - First release on crates.io, with the API reference on docs.rs.
 - Opt-in `RetryPolicy` for `GET` calls.
@@ -15,8 +21,6 @@ step at a time; this crate follows core's method surface.
 
 ## Next
 
-- Run cargo-semver-checks against 0.0.88 on every pull request (wired,
-  waiting for the first published version).
 - Wrap the asynchronous job endpoints (`POST /api/v1/generate` with
   server-side paths and job polling), today reachable through `request`,
   when core declares them stable for clients.

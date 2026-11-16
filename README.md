@@ -66,7 +66,7 @@
 pain001-sdk = "0.0.89"
 ```
 
-0.0.88 is the first release published to crates.io. Before it is out,
+Every release from 0.0.88 on is on crates.io. To try unreleased work,
 depend on the repository instead:
 `pain001-sdk = { git = "https://github.com/sebastienrousseau/pain001-sdk-rust" }`.
 The client needs a running pain001 server, which is a Python package:
@@ -147,7 +147,7 @@ match client.generate(&csv, "payments.csv", "pain.001.001.09", Some("uk-chaps"))
 This crate is one of the pain001 suite. pain001 has one engine, the
 Python server, and thin typed clients per language that all pass one
 shared conformance kit. The suite releases together at one version, core
-first; this crate's first release is 0.0.88.
+first; this crate's first release was 0.0.88.
 
 | Component | Purpose | Use case |
 | :--- | :--- | :--- |
