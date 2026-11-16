@@ -11,6 +11,11 @@ first release was 0.0.88.
 
 ## [0.0.89] - Unreleased
 
+### Changed
+
+- `ureq` moves to 3.5.2 (was 3.5.1) in `Cargo.lock`, matching
+  `fuzz/Cargo.lock`. The `Cargo.toml` requirement is unchanged.
+
 ## [0.0.88] - 2026-11-14
 
 ### Changed
