@@ -7,7 +7,9 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
-## [Unreleased]
+## [0.0.90] - 2026-11-16
+
+In lockstep with pain001 0.0.90.
 
 ### Changed
 
