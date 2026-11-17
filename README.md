@@ -63,7 +63,7 @@
 
 ```toml
 [dependencies]
-pain001-sdk = "0.0.89"
+pain001-sdk = "0.0.90"
 ```
 
 Every release from 0.0.88 on is on crates.io. To try unreleased work,
@@ -72,7 +72,7 @@ depend on the repository instead:
 The client needs a running pain001 server, which is a Python package:
 
 ```sh
-pip install 'pain001[api]==0.0.89'
+pip install 'pain001[api]==0.0.90'
 pain001 serve --host 127.0.0.1 --port 8000
 ```
 
@@ -88,7 +88,7 @@ snippet above.
 - Rust 1.85 or newer (`rust-version` in `Cargo.toml`), built and tested
   in CI on 1.85.0 and stable on Linux ([toolchain policy](docs/POLICIES.md)).
 - A pain001 server to talk to. CI runs the conformance kit in
-  `conformance/` against pain001 0.0.89, the latest release, pinned in
+  `conformance/` against pain001 0.0.90, the latest release, pinned in
   `ci/server-requirements.in`.
 - No async runtime: every call blocks the calling thread. Any platform
   ureq and rustls support; CI runs on Linux, development happens on macOS.
@@ -366,8 +366,8 @@ Also: [Architecture](docs/ARCHITECTURE.md) ·
 The project is pre-1.0 and versions advance in `0.0.1` steps, in lockstep
 with the pain001 suite. The breaking axis is the public Rust API: method
 signatures, the `Error` variants, `RetryPolicy` and the response types;
-cargo-semver-checks guards it against the last crates.io release from
-0.0.88 on. Response structs and enums are `#[non_exhaustive]`, so a field
+cargo-semver-checks guards it against the last crates.io release, held
+to a patch release's rules, from 0.0.90 on. Response structs and enums are `#[non_exhaustive]`, so a field
 or message type the server adds is not breaking. The client adds no
 output of its own: what a call returns is what the server sent, decoded,
 so behaviour changes follow the server's release notes and the

@@ -7,6 +7,29 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
+## [0.0.90] - 2026-11-16
+
+In lockstep with pain001 0.0.90.
+
+### Changed
+
+- CI tests against pain001 0.0.90 (`ci/server-requirements.in`), which
+  fixes a race in core's `lazy_module` that made a freshly started
+  `pain001 serve` answer its first parallel requests with HTTP 500.
+  The vendored conformance kit is unchanged: core's `conformance/` is
+  identical between 0.0.88 and 0.0.90.
+- The version moves to 0.0.90 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
+  README and manual install snippets, the bug report form, the
+  `KEYS.asc` example and the packaging guide's commands.
+
+### Fixed
+
+- `make api-check` runs cargo-semver-checks with `--release-type patch`.
+  Between 0.0.x versions it counted every bump as major and skipped all
+  260 checks while reporting success; it now runs 229 checks against the
+  newest crates.io release, and fails if a run checks nothing.
+
 ## [0.0.89] - 2026-11-16
 
 In lockstep with pain001 0.0.89.
