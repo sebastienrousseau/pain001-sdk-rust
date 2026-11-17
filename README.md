@@ -366,8 +366,8 @@ Also: [Architecture](docs/ARCHITECTURE.md) ·
 The project is pre-1.0 and versions advance in `0.0.1` steps, in lockstep
 with the pain001 suite. The breaking axis is the public Rust API: method
 signatures, the `Error` variants, `RetryPolicy` and the response types;
-cargo-semver-checks guards it against the last crates.io release from
-0.0.88 on. Response structs and enums are `#[non_exhaustive]`, so a field
+cargo-semver-checks guards it against the last crates.io release, held
+to a patch release's rules, from 0.0.90 on. Response structs and enums are `#[non_exhaustive]`, so a field
 or message type the server adds is not breaking. The client adds no
 output of its own: what a call returns is what the server sent, decoded,
 so behaviour changes follow the server's release notes and the

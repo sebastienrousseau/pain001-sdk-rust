@@ -21,6 +21,13 @@ first release was 0.0.88.
   README and manual install snippets, the bug report form, the
   `KEYS.asc` example and the packaging guide's commands.
 
+### Fixed
+
+- `make api-check` runs cargo-semver-checks with `--release-type patch`.
+  Between 0.0.x versions it counted every bump as major and skipped all
+  260 checks while reporting success; it now runs 229 checks against the
+  newest crates.io release, and fails if a run checks nothing.
+
 ## [0.0.89] - 2026-11-16
 
 In lockstep with pain001 0.0.89.

@@ -13,8 +13,9 @@ step at a time; this crate follows core's method surface.
 ## 0.0.89 (released 2026-11-16)
 
 - In lockstep with pain001 0.0.89: CI ran the conformance kit against
-  it, and cargo-semver-checks compared the API with 0.0.88 from
-  crates.io on every pull request.
+  it. cargo-semver-checks ran against 0.0.88 from crates.io on every
+  pull request, but skipped every check between 0.0.x versions; 0.0.90
+  makes the checks run.
 
 ## 0.0.88
 
