@@ -2,7 +2,7 @@
 # The development container: stable Rust with every tool `make check`
 # needs, at the versions CI pins. The base is pinned by digest; Dependabot
 # keeps it current (docker ecosystem, .devcontainer).
-FROM mcr.microsoft.com/devcontainers/rust:1-bookworm@sha256:86d9228ec0744191b45ec91e2bb9a0dd7d7bfd4c4f01ef47abb78032ddddf1c7
+FROM mcr.microsoft.com/devcontainers/rust:1-bookworm@sha256:99196945fec17043ebd2d802b01c9700a68e51722a009612fbc3ab31c1cf325d
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 python3-venv \

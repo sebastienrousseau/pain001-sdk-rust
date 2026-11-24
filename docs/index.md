@@ -9,7 +9,7 @@ it, proven against the suite's conformance kit in CI.
 
 ```toml
 [dependencies]
-pain001-sdk = "0.0.90"
+pain001-sdk = "0.0.91"
 ```
 
 ```rust

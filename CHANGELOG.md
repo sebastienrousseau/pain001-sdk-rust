@@ -7,6 +7,30 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
+## [Unreleased]
+
+In lockstep with pain001 0.0.91. The vendored conformance kit is
+unchanged: core's `conformance/` is identical between 0.0.90 and 0.0.91.
+CI moves to the pain001 0.0.91 server once it is on PyPI.
+
+### Changed
+
+- CI actions: `taiki-e/install-action` 2.90.6, `github/codeql-action`
+  4.39.4 and `ossf/scorecard-action` 2.6.0, each pinned by commit SHA.
+- The devcontainer's `devcontainers/rust:1-bookworm` base image moves to
+  its current digest.
+- The version moves to 0.0.91 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
+  README and manual install snippets, the bug report form, the
+  `KEYS.asc` example and the packaging guide's commands.
+
+### Security
+
+- The manual builds with mkdocs-material 9.8.2, which fixes
+  GHSA-wxw8-4jgj-q85j in its privacy plugin, and pymdown-extensions
+  13.1.2; `docs/requirements.in` now requires pymdown-extensions
+  `>=13.1.1`.
+
 ## [0.0.90] - 2026-11-16
 
 In lockstep with pain001 0.0.90.
