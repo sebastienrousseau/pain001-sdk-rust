@@ -7,6 +7,15 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
+## [Unreleased]
+
+### Changed
+
+- The version moves to 0.0.91 in `Cargo.toml`, both lockfiles,
+  `CITATION.cff`, the `SECURITY.md` and `SUPPORT.md` support tables, the
+  README and manual install snippets, the bug report form, the
+  `KEYS.asc` example and the packaging guide's commands.
+
 ## [0.0.90] - 2026-11-16
 
 In lockstep with pain001 0.0.90.

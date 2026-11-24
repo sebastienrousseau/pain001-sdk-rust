@@ -6,8 +6,8 @@
 
 | Version | Status | Security fixes |
 | :--- | :--- | :--- |
-| `0.0.90` | Current | Yes |
-| `0.0.89` | Prior | No: upgrade to 0.0.90 |
+| `0.0.91` | Current | Yes |
+| `0.0.90` | Prior | No: upgrade to 0.0.91 |
 
 The latest release, in lockstep with the pain001 suite, receives
 security fixes; an older release is fixed by upgrading, since each step

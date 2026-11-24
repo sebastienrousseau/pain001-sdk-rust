@@ -17,8 +17,8 @@
 
 | Version | Status | Supported |
 | :--- | :--- | :--- |
-| `0.0.90` | Current | Yes |
-| `0.0.89` | Prior | No: upgrade to 0.0.90 |
+| `0.0.91` | Current | Yes |
+| `0.0.90` | Prior | No: upgrade to 0.0.91 |
 
 The latest release is supported. Versions advance by `0.0.1` in lockstep
 with the pain001 suite, so upgrading is the fix for an older one.

@@ -5,7 +5,13 @@
 Direction, not commitments. The suite releases in lockstep, one `0.0.1`
 step at a time; this crate follows core's method surface.
 
-## 0.0.90 (this release)
+## 0.0.91 (this release)
+
+- In lockstep with pain001 0.0.91: CI tests against it once core
+  0.0.91 is on PyPI, and the vendored conformance kit matches its
+  `conformance/`.
+
+## 0.0.90 (released 2026-11-16)
 
 - In lockstep with pain001 0.0.90: CI tests against it, a server that
   no longer answers its first parallel requests with HTTP 500.
