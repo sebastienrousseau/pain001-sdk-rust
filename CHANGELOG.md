@@ -7,11 +7,12 @@ format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions advance by 0.0.1 in lockstep with the pain001 suite. The
 first release was 0.0.88.
 
-## [Unreleased]
+## [0.0.91] - 2026-11-25
 
 In lockstep with pain001 0.0.91. The vendored conformance kit is
 unchanged: core's `conformance/` is identical between 0.0.90 and 0.0.91.
-CI moves to the pain001 0.0.91 server once it is on PyPI.
+CI runs against the pain001 0.0.91 server, pinned in
+`ci/server-requirements.in`.
 
 ### Changed
 
