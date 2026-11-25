@@ -5,11 +5,11 @@
 Direction, not commitments. The suite releases in lockstep, one `0.0.1`
 step at a time; this crate follows core's method surface.
 
-## 0.0.91 (this release)
+## 0.0.91 (released 2026-11-25)
 
-- In lockstep with pain001 0.0.91: CI tests against it once core
-  0.0.91 is on PyPI, and the vendored conformance kit matches its
-  `conformance/`.
+- In lockstep with pain001 0.0.91: CI tests against it, and the
+  vendored conformance kit matches its `conformance/`.
+- The manual builds with mkdocs-material 9.8.2 (GHSA-wxw8-4jgj-q85j).
 
 ## 0.0.90 (released 2026-11-16)
 
